@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SkyForge: Aviation Idle RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#070b14',
+                            900: '#0b1120',
+                            800: '#111827',
+                            700: '#1e293b',
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(-4px)' },
+                            '50%': { transform: 'translateY(4px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #070b14;
+            color: #f8fafc;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* Кастомний скролбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Анімація кліку по кнопці кування/збірки */
+        .forge-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Ефект спалаху при влучанні */
+        @keyframes hitFlash {
+            0% { filter: brightness(2.5) drop-shadow(0 0 12px rgba(239, 68, 68, 0.8)); }
+            100% { filter: brightness(1); }
+        }
+        .hit-flash {
+            animation: hitFlash 0.15s ease-out;
+        }
+
+        /* Анімація вильоту цифр шкоди */
+        @keyframes floatUpFade {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.8);
+            }
+            20% {
+                transform: translateY(-12px) scale(1.15);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-45px) scale(0.95);
+            }
+        }
+        .damage-popup {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 800;
+            animation: floatUpFade 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+            z-index: 30;
+        }
+
+        /* Анімація іскор збірки */
+        @keyframes sparkFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0.2);
+            }
+        }
+        .spark-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkFly 0.5s ease-out forwards;
+            z-index: 40;
+        }
+
+        /* Сітка радару на фоні */
+        .radar-grid {
+            background-image:
+                linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between bg-navy-950 font-sans">
+
+    <!-- Головний контейнер додатку (адаптивний під мобільні та десктоп) -->
+    <div class="w-full max-w-2xl min-h-screen flex flex-col bg-navy-900 border-x border-slate-800/80 shadow-2xl relative">
+
+        <!-- 1. ВЕРХНЯ ПАНЕЛЬ РЕСУРСІВ -->
+        <header class="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-md border-b border-slate-800 px-3 py-2.5 sm:px-5 flex items-center justify-between gap-2">
+            <!-- Ресурси -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <!-- Золото -->
+                <div class="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 px-3 py-1.5 rounded-xl shadow-inner">
+                    <div class="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-none">Золото</div>
+                        <div id="ui-gold" class="text-sm sm:text-base font-extrabold text-amber-400 leading-tight">0</div>
+                    </div>
+                </div>
+
+                <!-- Деталі / Брухт -->
+                <div class="flex items-center gap-2 bg-slate-900/90 border border-cyan-500/30 px-3 py-1.5 rounded-xl shadow-inner">
+                    <div class="w-6 h-6 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-none">Деталі</div>
+                        <div id="ui-scrap" class="text-sm sm:text-base font-extrabold text-cyan-400 leading-tight">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Поточна ера та кнопка скидання -->
+            <div class="flex items-center gap-2">
+                <div class="hidden sm:flex flex-col items-end">
+                    <span id="ui-header-era" class="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md">Ера I</span>
+                    <span id="ui-header-plane" class="text-xs font-semibold text-slate-300 mt-0.5">Sopwith Camel (1916)</span>
+                </div>
+                <button id="btn-reset-modal" title="Скинути прогрес" class="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 text-slate-400 hover:text-rose-400 border border-slate-700 hover:border-rose-500/40 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. ВЕРХНЯ ПОЛОВИНА — АВТО-БІЙ У ПОВІТРІ (STEELBORN MECHANICS) -->
+        <section class="relative w-full h-64 sm:h-72 bg-gradient-to-b from-sky-950 via-slate-900 to-navy-900 border-b border-slate-800 overflow-hidden flex flex-col justify-between select-none">
+
+            <!-- Фоновий Canvas для хмар, снарядів та вибухів -->
+            <canvas id="battle-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+
+            <!-- Верхній HUD бою: Хвиля та Бос-індикатор -->
+            <div class="relative z-20 px-3 pt-2.5 sm:px-5 flex items-center justify-between">
+                <div class="flex items-center gap-2 bg-slate-950/75 backdrop-blur-sm border border-slate-700/80 px-3 py-1 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span id="ui-wave-text" class="text-xs sm:text-sm font-bold tracking-wide text-white">Хвиля 1-1</span>
+                </div>
+
+                <div id="ui-boss-badge" class="hidden items-center gap-1.5 bg-rose-950/90 border border-rose-500/60 px-3 py-1 rounded-full text-rose-300 text-xs font-extrabold uppercase tracking-wider animate-pulse">
+                    <svg class="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    ПОВІТРЯНИЙ БОС
+                </div>
+
+                <div class="bg-slate-950/75 backdrop-blur-sm border border-slate-700/80 px-2.5 py-1 rounded-full text-[11px] font-semibold text-slate-300">
+                    DPS: <span id="ui-dps" class="text-amber-400 font-bold">0</span>/с
+                </div>
+            </div>
+
+            <!-- Центральна арена літаків (SVG сутності) -->
+            <div id="battle-arena" class="relative z-20 flex-1 flex items-center justify-between px-4 sm:px-10 my-auto">
+
+                <!-- ЛІТАК ГРАВЦЯ (Зліва) -->
+                <div id="player-entity" class="relative flex flex-col items-center transition-transform duration-150">
+                    <!-- Смужка HP гравця -->
+                    <div class="w-24 sm:w-28 mb-1.5">
+                        <div class="flex justify-between text-[10px] font-bold mb-0.5 px-0.5">
+                            <span class="text-emerald-400">HP</span>
+                            <span id="ui-player-hp-text" class="text-slate-300">100/100</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-950/90 rounded-full overflow-hidden border border-slate-700">
+                            <div id="ui-player-hp-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-150" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для SVG літака гравця -->
+                    <div id="player-svg-container" class="w-36 h-24 sm:w-44 sm:h-28 flex items-center justify-center animate-float drop-shadow-[0_14px_18px_rgba(0,0,0,0.75)]">
+                        <!-- Динамічно рендериться через JS -->
+                    </div>
+
+                    <!-- Оверлей ремонту при знищенні -->
+                    <div id="player-repair-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-xs rounded-2xl border border-amber-500/50 flex flex-col items-center justify-center p-2 text-center">
+                        <span class="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">Ремонт!</span>
+                        <span id="ui-repair-timer" class="text-sm font-black text-white mt-0.5">2.0с</span>
+                    </div>
+                </div>
+
+                <!-- ВОРОЖИЙ ОБ'ЄКТ (Справа) -->
+                <div id="enemy-entity" class="relative flex flex-col items-center transition-all duration-200">
+                    <!-- Назва та смужка HP ворога -->
+                    <div class="w-28 sm:w-32 mb-1.5">
+                        <div class="flex justify-between items-center text-[10px] font-bold mb-0.5 px-0.5">
+                            <span id="ui-enemy-name" class="text-rose-400 truncate max-w-[75px]">Розвідник</span>
+                            <span id="ui-enemy-hp-text" class="text-slate-300">50</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-950/90 rounded-full overflow-hidden border border-slate-700">
+                            <div id="ui-enemy-hp-bar" class="h-full bg-gradient-to-r from-rose-600 to-orange-500 transition-all duration-100" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для SVG ворога -->
+                    <div id="enemy-svg-container" class="w-32 h-24 sm:w-40 sm:h-28 flex items-center justify-center drop-shadow-[0_14px_18px_rgba(0,0,0,0.75)]">
+                        <!-- Динамічно рендериться через JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Нижня панель характеристик поточного літака -->
+            <div class="relative z-20 bg-slate-950/85 backdrop-blur-md border-t border-slate-800/90 px-3 py-2 sm:px-5 grid grid-cols-3 gap-2 text-center">
+                <div class="bg-slate-900/90 rounded-lg py-1 px-2 border border-slate-800">
+                    <span class="text-[10px] text-slate-400 uppercase font-semibold block">Атака (ATK)</span>
+                    <span id="ui-stat-atk" class="text-xs sm:text-sm font-extrabold text-rose-400">12</span>
+                </div>
+                <div class="bg-slate-900/90 rounded-lg py-1 px-2 border border-slate-800">
+                    <span class="text-[10px] text-slate-400 uppercase font-semibold block">Броня (HP)</span>
+                    <span id="ui-stat-hp" class="text-xs sm:text-sm font-extrabold text-emerald-400">100</span>
+                </div>
+                <div class="bg-slate-900/90 rounded-lg py-1 px-2 border border-slate-800">
+                    <span class="text-[10px] text-slate-400 uppercase font-semibold block">Швидкострільність</span>
+                    <span id="ui-stat-spd" class="text-xs sm:text-sm font-extrabold text-cyan-400">1.2/с</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. НИЖНЯ ПОЛОВИНА — АНГАР ТА СКЛАДАЛЬНИЙ ЦЕХ (FORGE MASTER MECHANICS) -->
+        <main class="flex-1 flex flex-col bg-navy-900 radar-grid overflow-hidden">
+
+            <!-- Навігаційні вкладки -->
+            <nav class="grid grid-cols-3 gap-1.5 p-2.5 bg-slate-950/60 border-b border-slate-800">
+                <button data-tab="workshop" class="tab-btn active-tab flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    <span>Цех та Еволюція</span>
+                </button>
+
+                <button data-tab="upgrades" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Модулі</span>
+                </button>
+
+                <button data-tab="contracts" class="tab-btn relative flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <span>Контракти</span>
+                    <span id="ui-contract-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-navy-950 text-[10px] font-black flex items-center justify-center animate-bounce">!</span>
+                </button>
+            </nav>
+
+            <!-- КОНТЕНТ ВКЛАДОК -->
+            <div class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
+
+                <!-- ВКЛАДКА 1: ЦЕХ ТА ЕВОЛЮЦІЯ (FORGE MASTER CORE) -->
+                <div id="tab-workshop" class="tab-content space-y-4">
+
+                    <!-- Картка активного верстата збірки / крафту -->
+                    <div class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Складальний стапель</span>
+                                    <span id="ui-craft-tier-label" class="text-xs font-bold text-slate-400">Рівень 1</span>
+                                </div>
+                                <h2 id="ui-craft-title" class="text-base sm:text-lg font-extrabold text-white mt-1">Збірка: Посилений Вузол</h2>
+                                <p id="ui-craft-desc" class="text-xs text-slate-400 mt-0.5">Завершення збірки назавжди підвищує базову потужність літака та дає деталі.</p>
+                            </div>
+                        </div>
+
+                        <!-- Прогрес-бар кування / збірки -->
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-cyan-400" id="ui-craft-status">Інженери працюють...</span>
+                                <span class="text-slate-300" id="ui-craft-timer">0.0 / 8.0 с</span>
+                            </div>
+                            <div class="w-full h-3.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700 p-0.5">
+                                <div id="ui-craft-bar" class="h-full rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-400 transition-all duration-75" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Інтерактивна кнопка прискорення збірки (як у Forge Master) -->
+                        <button id="btn-forge-tap" class="forge-btn relative w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-navy-950 font-black text-sm sm:text-base uppercase tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.35)] border border-amber-300/50 flex items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                            <span>Прискорити збірку (+<span id="ui-tap-power">1.0</span>с)</span>
+                        </button>
+                    </div>
+
+                    <!-- Дерево Еволюції Літаків (від гіршого до найкращого) -->
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between px-1">
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Еволюція Авіації (Ера I → V)</h3>
+                            <span class="text-[11px] text-slate-500">Оберіть або зберіть наступний</span>
+                        </div>
+
+                        <div id="evolution-list" class="space-y-2.5">
+                            <!-- Список 5 літаків рендериться через JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ВКЛАДКА 2: МОДУЛІ ТА ВЕРСТАТИ (UPGRADES) -->
+                <div id="tab-upgrades" class="tab-content hidden space-y-3">
+                    <div class="flex items-center justify-between px-1">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Модернізація Систем та Цеху</h3>
+                        <span class="text-[11px] text-cyan-400 font-semibold">Постійні бонуси</span>
+                    </div>
+
+                    <div id="upgrades-list" class="space-y-2.5">
+                        <!-- Картки прокачування рендеряться через JS -->
+                    </div>
+                </div>
+
+                <!-- ВКЛАДКА 3: АВІА-КОНТРАКТИ (ORDERS) -->
+                <div id="tab-contracts" class="tab-content hidden space-y-3">
+                    <div class="flex items-center justify-between px-1">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Термінові Контракти Штабу</h3>
+                        <span class="text-[11px] text-amber-400 font-semibold">Виконуйте для нагород</span>
+                    </div>
+
+                    <div id="contracts-list" class="space-y-2.5">
+                        <!-- Активні контракти рендеряться через JS -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Спливаюче повідомлення (заміна alert) -->
+        <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
+        <!-- Модальне вікно підтвердження скидання прогресу (заміна confirm) -->
+        <div id="reset-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+                <h3 class="text-lg font-extrabold text-white">Скинути весь прогрес?</h3>
+                <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Усі відкриті літаки, золото, деталі та рівні верстатів буде видалено. Ви почнете з Sopwith Camel (1916).</p>
+                <div class="flex items-center justify-end gap-2.5 mt-5">
+                    <button id="btn-reset-cancel" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors">Скасувати</button>
+                    <button id="btn-reset-confirm" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white transition-colors">Так, скинути</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. ДЕТАЛІЗОВАНА ВІЙСЬКОВА АВІАЦІЙНА ГРАФІКА (SVG) ДЛЯ ВСІХ 5 ЕР ТА ВОРОГІВ
+         * ============================================================================
+         */
+        const AIRCRAFT_SVGS = {
+            // Ера 1: Sopwith Camel (1916) — Реалістичний біплан Першої світової війни
+            1: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="camelBody" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#57534e"/>
+                            <stop offset="55%" stop-color="#44403c"/>
+                            <stop offset="100%" stop-color="#d6d3d1"/>
+                        </linearGradient>
+                        <linearGradient id="camelWood" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#78350f"/>
+                            <stop offset="50%" stop-color="#b45309"/>
+                            <stop offset="100%" stop-color="#451a03"/>
+                        </linearGradient>
+                        <radialGradient id="cowlMetal" cx="40%" cy="40%" r="60%">
+                            <stop offset="0%" stop-color="#cbd5e1"/>
+                            <stop offset="60%" stop-color="#64748b"/>
+                            <stop offset="100%" stop-color="#1e293b"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- Тінь під фюзеляжем -->
+                    <ellipse cx="115" cy="94" rx="58" ry="4" fill="rgba(0,0,0,0.35)"/>
+                    <!-- Хвостовий стабілізатор та руль напрямку -->
+                    <path d="M22 50 L36 33 L49 35 L52 50 Z" fill="#44403c" stroke="#1c1917" stroke-width="1.2"/>
+                    <path d="M24 38 L35 38 L35 49 L24 49 Z" fill="#dc2626"/>
+                    <rect x="29" y="38" width="3" height="11" fill="#f8fafc"/>
+                    <rect x="32" y="38" width="3" height="11" fill="#1d4ed8"/>
+                    <path d="M18 52 L48 50 L50 54 L20 55 Z" fill="#78716c" stroke="#1c1917" stroke-width="1"/>
+                    <!-- Фюзеляж (полотно + фанерний ніс) -->
+                    <path d="M26 50 L115 44 L165 44 L167 62 L115 64 L28 56 Z" fill="url(#camelBody)" stroke="#1c1917" stroke-width="1.3"/>
+                    <!-- Фанерна обшивка передньої частини та заклепки -->
+                    <path d="M112 44 L156 44 L156 62 L112 63 Z" fill="url(#camelWood)" stroke="#451a03" stroke-width="1"/>
+                    <line x1="112" y1="44" x2="112" y2="63" stroke="#1c1917" stroke-width="1"/>
+                    <line x1="78" y1="47" x2="78" y2="60" stroke="#292524" stroke-width="0.8" stroke-dasharray="2 2"/>
+                    <!-- Розпізнавальна кокарда RAF на борту -->
+                    <circle cx="84" cy="54" r="7.5" fill="#facc15"/>
+                    <circle cx="84" cy="54" r="6" fill="#1d4ed8"/>
+                    <circle cx="84" cy="54" r="3.8" fill="#f8fafc"/>
+                    <circle cx="84" cy="54" r="1.8" fill="#dc2626"/>
+                    <!-- Відкрита кабіна пілота та кулемети Vickers -->
+                    <path d="M98 44 Q108 38 118 44 Z" fill="#1c1917"/>
+                    <circle cx="107" cy="40" r="4" fill="#78350f" stroke="#1c1917" stroke-width="1"/>
+                    <rect x="104" y="38" width="6" height="2.2" rx="1" fill="#38bdf8"/>
+                    <!-- Спарені кулемети Vickers перед кабіною -->
+                    <rect x="118" y="40.5" width="22" height="3.2" rx="1" fill="#1e293b" stroke="#0f172a" stroke-width="0.8"/>
+                    <line x1="140" y1="42" x2="152" y2="42" stroke="#475569" stroke-width="1.5"/>
+                    <!-- Нижнє крило -->
+                    <path d="M102 60 L152 60 L146 66 L98 65 Z" fill="#57534e" stroke="#1c1917" stroke-width="1.2"/>
+                    <!-- Міжкрильні стійки та розчалки (дроти) -->
+                    <line x1="108" y1="30" x2="106" y2="61" stroke="#451a03" stroke-width="2.2"/>
+                    <line x1="142" y1="30" x2="140" y2="61" stroke="#451a03" stroke-width="2.2"/>
+                    <line x1="118" y1="30" x2="122" y2="44" stroke="#451a03" stroke-width="1.8"/>
+                    <line x1="108" y1="31" x2="140" y2="60" stroke="#cbd5e1" stroke-width="0.6" opacity="0.7"/>
+                    <line x1="142" y1="31" x2="106" y2="60" stroke="#cbd5e1" stroke-width="0.6" opacity="0.7"/>
+                    <!-- Верхнє крило -->
+                    <path d="M96 26 L156 26 L152 31 L93 31 Z" fill="#44403c" stroke="#1c1917" stroke-width="1.3"/>
+                    <!-- Металевий капот ротативного двигуна Clerget -->
+                    <path d="M156 43 L169 44 Q173 53 169 62 L156 63 Z" fill="url(#cowlMetal)" stroke="#0f172a" stroke-width="1.3"/>
+                    <!-- Обертання дерев'яного дволопатевого гвинта -->
+                    <rect x="171" y="50" width="5" height="6" rx="1" fill="#334155"/>
+                    <ellipse cx="174" cy="53" rx="2.2" ry="26" fill="rgba(217, 119, 6, 0.35)" stroke="rgba(254, 243, 199, 0.45)" stroke-width="0.8">
+                        <animate attributeName="ry" values="26;5;26" dur="0.09s" repeatCount="indefinite"/>
+                    </ellipse>
+                    <!-- Стійки шасі та спицьовані колеса -->
+                    <line x1="126" y1="63" x2="138" y2="83" stroke="#451a03" stroke-width="2.2"/>
+                    <line x1="150" y1="62" x2="138" y2="83" stroke="#451a03" stroke-width="2.2"/>
+                    <circle cx="138" cy="84" r="7.5" fill="#1c1917" stroke="#57534e" stroke-width="2"/>
+                    <circle cx="138" cy="84" r="3.5" fill="#a8a29e"/>
+                </svg>
+            `,
+            // Ера 2: Supermarine Spitfire Mk.V (1941) — Легендарний винищувач RAF
+            2: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="spitCamo" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#3f6212"/>
+                            <stop offset="45%" stop-color="#4d7c0f"/>
+                            <stop offset="100%" stop-color="#713f12"/>
+                        </linearGradient>
+                        <linearGradient id="spitBelly" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#94a3b8"/>
+                            <stop offset="100%" stop-color="#cbd5e1"/>
+                        </linearGradient>
+                        <linearGradient id="canopyGlass" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#bae6fd"/>
+                            <stop offset="50%" stop-color="#0284c7"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Округлий кіль та хвостове колесо -->
+                    <path d="M16 52 Q22 28 38 30 Q46 32 48 50 Z" fill="#4d7c0f" stroke="#1a2e05" stroke-width="1.3"/>
+                    <rect x="26" y="36" width="3.5" height="12" fill="#dc2626"/>
+                    <rect x="29.5" y="36" width="3.5" height="12" fill="#f8fafc"/>
+                    <rect x="33" y="36" width="3.5" height="12" fill="#1d4ed8"/>
+                    <circle cx="24" cy="61" r="2.5" fill="#1e293b"/>
+                    <!-- Витончений фюзеляж Spitfire -->
+                    <path d="M22 50 Q80 42 174 44 L176 58 Q115 67 24 56 Z" fill="url(#spitCamo)" stroke="#1a2e05" stroke-width="1.4"/>
+                    <!-- Нижня світло-сіра частина фюзеляжу -->
+                    <path d="M24 54 Q105 63 175 56 L174 59 Q105 67 24 56 Z" fill="url(#spitBelly)"/>
+                    <!-- Плями камуфляжу Dark Earth -->
+                    <path d="M52 47 Q68 44 74 54 L48 54 Z" fill="#713f12" opacity="0.85"/>
+                    <path d="M126 44 Q146 43 152 55 L122 55 Z" fill="#713f12" opacity="0.85"/>
+                    <!-- Лінії розшивки та заклепки -->
+                    <line x1="65" y1="46" x2="65" y2="57" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
+                    <line x1="124" y1="44" x2="124" y2="59" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
+                    <line x1="154" y1="44" x2="154" y2="58" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
+                    <!-- Розпізнавальна кокарда RAF -->
+                    <circle cx="78" cy="52" r="8" fill="#facc15"/>
+                    <circle cx="78" cy="52" r="6.3" fill="#1d4ed8"/>
+                    <circle cx="78" cy="52" r="4" fill="#f8fafc"/>
+                    <circle cx="78" cy="52" r="1.8" fill="#dc2626"/>
+                    <!-- Краплеподібний ліхтар кабіни з переплетенням -->
+                    <path d="M86 45 Q102 32 122 44 Z" fill="url(#canopyGlass)" stroke="#1e293b" stroke-width="1.3"/>
+                    <line x1="97" y1="36" x2="97" y2="45" stroke="#1e293b" stroke-width="1.3"/>
+                    <line x1="110" y1="36" x2="110" y2="44" stroke="#1e293b" stroke-width="1.3"/>
+                    <path d="M92 38 Q103 34 114 39" fill="none" stroke="#e0f2fe" stroke-width="1.1" opacity="0.8"/>
+                    <!-- Вихлопні патрубки двигуна Rolls-Royce Merlin -->
+                    <g fill="#1e293b" stroke="#0f172a" stroke-width="0.6">
+                        <rect x="136" y="47" width="4" height="2.2" rx="0.5"/>
+                        <rect x="142" y="47" width="4" height="2.2" rx="0.5"/>
+                        <rect x="148" y="47" width="4" height="2.2" rx="0.5"/>
+                        <rect x="154" y="47" width="4" height="2.2" rx="0.5"/>
+                        <rect x="160" y="47" width="4" height="2.2" rx="0.5"/>
+                    </g>
+                    <!-- Знамените еліптичне крило та 20-мм гармата Hispano -->
+                    <path d="M94 55 Q122 53 148 56 Q138 69 102 68 Q90 64 94 55 Z" fill="#4d7c0f" stroke="#1a2e05" stroke-width="1.4"/>
+                    <rect x="145" y="58" width="14" height="2.5" rx="1" fill="#334155"/>
+                    <!-- Червоний обтічник (кок) гвинта -->
+                    <path d="M174 44 L191 51 L174 58 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.2"/>
+                    <line x1="181" y1="46" x2="181" y2="56" stroke="#f8fafc" stroke-width="1.2"/>
+                    <!-- Розмиття трилопатевого гвинта -->
+                    <ellipse cx="185" cy="51" rx="2.5" ry="29" fill="rgba(226, 232, 240, 0.35)" stroke="rgba(255, 255, 255, 0.5)" stroke-width="0.8">
+                        <animate attributeName="ry" values="29;6;29" dur="0.07s" repeatCount="indefinite"/>
+                    </ellipse>
+                </svg>
+            `,
+            // Ера 3: F-86F Sabre (1950) — Полірований алюмінієвий реактивний винищувач
+            3: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="sabreAlum" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#f8fafc"/>
+                            <stop offset="38%" stop-color="#cbd5e1"/>
+                            <stop offset="65%" stop-color="#64748b"/>
+                            <stop offset="100%" stop-color="#e2e8f0"/>
+                        </linearGradient>
+                        <linearGradient id="sabreJet" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#fb923c"/>
+                            <stop offset="50%" stop-color="#ef4444" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Реактивний струмінь двигуна J47 -->
+                    <path d="M26 48 L2 52 L26 56 Z" fill="url(#sabreJet)">
+                        <animate attributeName="d" values="M26 48 L2 52 L26 56 Z;M26 47 L10 52 L26 57 Z;M26 48 L2 52 L26 56 Z" dur="0.12s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Високий стрілоподібний кіль із жовтою тактичною смугою -->
+                    <path d="M32 45 L14 18 L34 18 L54 45 Z" fill="url(#sabreAlum)" stroke="#334155" stroke-width="1.3"/>
+                    <path d="M21 28 L41 28 L46 35 L26 35 Z" fill="#eab308" stroke="#1e293b" stroke-width="0.9"/>
+                    <!-- Стрілоподібний стабілізатор -->
+                    <path d="M24 51 L10 55 L36 55 Z" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                    <!-- Сигароподібний фюзеляж із носовим повітрозабірником -->
+                    <path d="M26 45 L184 44 Q190 52 184 61 L26 58 Z" fill="url(#sabreAlum)" stroke="#334155" stroke-width="1.4"/>
+                    <!-- Жовта смуга швидкої ідентифікації навколо корпусу -->
+                    <rect x="86" y="45" width="12" height="14" fill="#eab308" stroke="#1e293b" stroke-width="0.9"/>
+                    <!-- Носовий повітрозабірник та діелектрична панель радару -->
+                    <path d="M174 44 L186 45 Q191 52 186 60 L174 61 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1"/>
+                    <ellipse cx="187" cy="52.5" rx="2.5" ry="7" fill="#0f172a"/>
+                    <path d="M176 41 L185 43 L185 45 L176 45 Z" fill="#1e293b"/>
+                    <!-- Стійки 6 кулеметів M3 Browning (порти на носі) -->
+                    <circle cx="164" cy="49" r="1.2" fill="#0f172a"/>
+                    <circle cx="168" cy="51" r="1.2" fill="#0f172a"/>
+                    <circle cx="164" cy="54" r="1.2" fill="#0f172a"/>
+                    <!-- Розшивка панелей алюмінію -->
+                    <line x1="65" y1="45" x2="65" y2="58" stroke="#475569" stroke-width="0.8"/>
+                    <line x1="128" y1="44" x2="128" y2="60" stroke="#475569" stroke-width="0.8"/>
+                    <line x1="156" y1="44" x2="156" y2="60" stroke="#475569" stroke-width="0.8"/>
+                    <!-- Розпізнавальний знак USAF -->
+                    <rect x="52" y="50" width="18" height="4" fill="#1d4ed8"/>
+                    <rect x="52" y="51.3" width="18" height="1.4" fill="#dc2626"/>
+                    <circle cx="61" cy="52" r="4.5" fill="#1d4ed8" stroke="#f8fafc" stroke-width="0.8"/>
+                    <polygon points="61,48 62.2,51 65,51 62.8,52.8 63.6,55.5 61,53.8 58.4,55.5 59.2,52.8 57,51 59.8,51" fill="#f8fafc"/>
+                    <!-- Краплеподібний безрамний ліхтар кабіни -->
+                    <path d="M102 44 Q124 30 148 44 Z" fill="url(#canopyGlass)" stroke="#334155" stroke-width="1.3"/>
+                    <line x1="114" y1="36" x2="114" y2="44" stroke="#475569" stroke-width="1.5"/>
+                    <path d="M118 35 Q130 33 141 40" fill="none" stroke="#f8fafc" stroke-width="1.2" opacity="0.85"/>
+                    <!-- Стрілоподібне крило з аеродинамічним гребенем -->
+                    <path d="M98 54 L136 54 L106 75 L78 73 Z" fill="#cbd5e1" stroke="#334155" stroke-width="1.4"/>
+                    <line x1="112" y1="54" x2="96" y2="73" stroke="#64748b" stroke-width="1.2"/>
+                    <!-- Підвісний паливний бак -->
+                    <ellipse cx="105" cy="70" rx="16" ry="3.5" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                </svg>
+            `,
+            // Ера 4: F-16C Fighting Falcon (1985) — Багатоцільовий тактичний винищувач 4-го покоління
+            4: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="f16Grey" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#475569"/>
+                            <stop offset="50%" stop-color="#64748b"/>
+                            <stop offset="100%" stop-color="#94a3b8"/>
+                        </linearGradient>
+                        <linearGradient id="f16Afterburner" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#e0f2fe"/>
+                            <stop offset="30%" stop-color="#38bdf8"/>
+                            <stop offset="70%" stop-color="#f97316"/>
+                            <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="goldCanopy" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#fef08a"/>
+                            <stop offset="45%" stop-color="#d97706"/>
+                            <stop offset="100%" stop-color="#1e293b"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Потужний форсажний факел двигуна F110-GE-129 з ударними ромбами -->
+                    <path d="M28 46 L0 51 L28 56 Z" fill="url(#f16Afterburner)">
+                        <animate attributeName="d" values="M28 46 L0 51 L28 56 Z;M28 47 L7 51 L28 55 Z;M28 46 L0 51 L28 56 Z" dur="0.09s" repeatCount="indefinite"/>
+                    </path>
+                    <polygon points="22,51 17,49 12,51 17,53" fill="#e0f2fe" opacity="0.9"/>
+                    <!-- Сопло двигуна -->
+                    <path d="M28 45 L38 44 L38 58 L28 57 Z" fill="#1e293b" stroke="#0f172a" stroke-width="1.2"/>
+                    <!-- Високий кіль F-16 із контейнером гальмівного парашута -->
+                    <path d="M38 44 L22 14 L42 14 L64 44 Z" fill="#475569" stroke="#1e293b" stroke-width="1.3"/>
+                    <rect x="25" y="17" width="16" height="3" fill="#38bdf8" opacity="0.8"/>
+                    <!-- Нижній підфюзеляжний гребінь (ventral fin) -->
+                    <path d="M44 58 L36 67 L58 58 Z" fill="#475569" stroke="#1e293b" stroke-width="1"/>
+                    <!-- Інтегральний фюзеляж та гострий радіопрозорий обтічник носа -->
+                    <path d="M38 44 L145 43 L204 52 L145 59 L38 58 Z" fill="url(#f16Grey)" stroke="#1e293b" stroke-width="1.4"/>
+                    <path d="M172 47 L204 52 L172 56 Z" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+                    <!-- Підфюзеляжний повітрозабірник -->
+                    <path d="M116 58 L152 57 L148 64 L112 63 Z" fill="#334155" stroke="#0f172a" stroke-width="1.2"/>
+                    <ellipse cx="150" cy="60.5" rx="2" ry="3.2" fill="#090d16"/>
+                    <!-- Безрамний золотистий ліхтар кабіни та катапультне крісло ACES II -->
+                    <path d="M108 44 Q134 29 162 44 Z" fill="url(#goldCanopy)" stroke="#1e293b" stroke-width="1.3"/>
+                    <path d="M122 43 L125 35 L129 35 L128 43 Z" fill="#0f172a"/>
+                    <path d="M132 34 Q145 33 155 40" fill="none" stroke="#fef9c3" stroke-width="1.2" opacity="0.85"/>
+                    <!-- Дельта-крило з напливом (LEX) -->
+                    <path d="M74 51 L138 51 L96 74 L68 72 Z" fill="#64748b" stroke="#1e293b" stroke-width="1.4"/>
+                    <!-- Ракета AIM-9 Sidewinder на кінцівці крила -->
+                    <rect x="64" y="71" width="38" height="2.6" rx="1" fill="#f8fafc" stroke="#475569" stroke-width="0.6"/>
+                    <path d="M102 71 L107 72.3 L102 73.6 Z" fill="#475569"/>
+                    <polygon points="70,71 67,68 73,71" fill="#94a3b8"/>
+                    <polygon points="70,73.6 67,76.6 73,73.6" fill="#94a3b8"/>
+                    <!-- Підкрилова ракета AIM-120 AMRAAM -->
+                    <rect x="82" y="63" width="34" height="3" rx="1" fill="#e2e8f0" stroke="#334155" stroke-width="0.7"/>
+                    <path d="M116 63 L121 64.5 L116 66 Z" fill="#1e293b"/>
+                </svg>
+            `,
+            // Ера 5: F-22A Raptor (5-те покоління) — Стес-винищувач завоювання переваги в повітрі
+            5: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="raptorStealth" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#1e293b"/>
+                            <stop offset="45%" stop-color="#334155"/>
+                            <stop offset="75%" stop-color="#0f172a"/>
+                            <stop offset="100%" stop-color="#475569"/>
+                        </linearGradient>
+                        <linearGradient id="raptorPlasma" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#cffafe"/>
+                            <stop offset="40%" stop-color="#06b6d4"/>
+                            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="raptorVisor" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#f59e0b"/>
+                            <stop offset="50%" stop-color="#fde047"/>
+                            <stop offset="100%" stop-color="#b45309"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Плазмовий вихлоп двох двигунів F119 з керованим вектором тяги -->
+                    <path d="M30 46 L2 51 L30 56 Z" fill="url(#raptorPlasma)">
+                        <animate attributeName="opacity" values="0.95;0.55;0.95" dur="0.08s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Пласкі стелс-сопла зменшеної ІЧ-помітності -->
+                    <path d="M30 45 L42 44 L42 58 L30 57 Z" fill="#090d16" stroke="#38bdf8" stroke-width="0.9"/>
+                    <!-- Скошені назовні подвійні кілі (V-tail стелс-геометрія) -->
+                    <path d="M44 45 L26 17 L48 17 L74 45 Z" fill="#1e293b" stroke="#64748b" stroke-width="1.2"/>
+                    <path d="M33 25 L54 25 L57 29 L36 29 Z" fill="#334155"/>
+                    <!-- Гранований стелс-планер із гострими кромками (chine) -->
+                    <path d="M40 45 L138 41 L208 51 L138 60 L40 57 Z" fill="url(#raptorStealth)" stroke="#64748b" stroke-width="1.3"/>
+                    <!-- Характерна бічна кромка корпусу (Chine line) для розсіювання радару -->
+                    <line x1="42" y1="51" x2="208" y2="51" stroke="#94a3b8" stroke-width="1.2" opacity="0.85"/>
+                    <!-- Пилкоподібні люки внутрішніх відсіків озброєння (stealth sawtooth seams) -->
+                    <path d="M96 52 L102 55 L108 52 L114 55 L120 52 L126 55 L132 52" fill="none" stroke="#64748b" stroke-width="0.9"/>
+                    <!-- Ромбоподібний повітрозабірник Caret -->
+                    <path d="M126 51 L156 51 L148 61 L120 60 Z" fill="#0f172a" stroke="#475569" stroke-width="1.1"/>
+                    <!-- Ліхтар кабіни з покриттям з оксиду індію та олова (золотистий відблиск) -->
+                    <path d="M114 43 Q142 29 170 43 Z" fill="url(#raptorVisor)" stroke="#94a3b8" stroke-width="1.2"/>
+                    <path d="M128 36 Q145 33 160 40" fill="none" stroke="#fef9c3" stroke-width="1.3" opacity="0.9"/>
+                    <!-- Трапецієподібне стелс-крило з RAM-обшивкою по краях -->
+                    <path d="M68 51 L142 51 L104 75 L64 70 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="1.3"/>
+                    <path d="M104 75 L142 51 L134 51 L98 74 Z" fill="#475569" opacity="0.7"/>
+                    <!-- Неонові навігаційні вогні низької помітності -->
+                    <circle cx="104" cy="73" r="1.8" fill="#22d3ee"/>
+                    <circle cx="176" cy="48" r="1.4" fill="#38bdf8"/>
+                </svg>
+            `
+        };
+
+        const ENEMY_SVGS = {
+            // Ворожий розвідувальний біплан / БПЛА (розвернутий вліво)
+            drone: `
+                <svg viewBox="0 0 180 100" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="enemyDark" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#334155"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Реактивний слід -->
+                    <path d="M158 46 L178 49 L158 52 Z" fill="#ef4444" opacity="0.7"/>
+                    <!-- V-подібне хвостове оперення -->
+                    <path d="M148 45 L162 24 L136 45 Z" fill="#7f1d1d" stroke="#450a0a" stroke-width="1.2"/>
+                    <!-- Обтічний корпус ударного БПЛА -->
+                    <path d="M156 45 L58 42 L18 50 L58 56 L156 53 Z" fill="url(#enemyDark)" stroke="#ef4444" stroke-width="1.2"/>
+                    <!-- Оптико-електронна турель під носом -->
+                    <circle cx="44" cy="56" r="5" fill="#1e293b" stroke="#ef4444" stroke-width="1"/>
+                    <circle cx="42" cy="56" r="2" fill="#f43f5e">
+                        <animate attributeName="opacity" values="1;0.3;1" dur="0.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <!-- Пряме крило великого подовження та керована бомба -->
+                    <path d="M74 49 L116 49 L126 70 L94 69 Z" fill="#1e293b" stroke="#475569" stroke-width="1.3"/>
+                    <rect x="82" y="64" width="24" height="3.5" rx="1.5" fill="#dc2626"/>
+                </svg>
+            `,
+            // Ворожий реактивний перехоплювач типу MiG-29/Su-27 (вліво)
+            interceptor: `
+                <svg viewBox="0 0 190 105" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="migRed" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#7f1d1d"/>
+                            <stop offset="50%" stop-color="#991b1b"/>
+                            <stop offset="100%" stop-color="#450a0a"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Форсаж -->
+                    <path d="M164 46 L188 51 L164 56 Z" fill="#f97316">
+                        <animate attributeName="d" values="M164 46 L188 51 L164 56 Z;M164 47 L180 51 L164 55 Z;M164 46 L188 51 L164 56 Z" dur="0.1s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Подвійний кіль -->
+                    <path d="M156 44 L168 18 L142 44 Z" fill="#7f1d1d" stroke="#450a0a" stroke-width="1.3"/>
+                    <!-- Стрілоподібний фюзеляж із гострим носом -->
+                    <path d="M162 44 L66 42 L14 51 L66 58 L162 56 Z" fill="url(#migRed)" stroke="#450a0a" stroke-width="1.4"/>
+                    <!-- Кабіна пілота -->
+                    <path d="M52 43 Q74 31 96 43 Z" fill="#1e293b" stroke="#f87171" stroke-width="1"/>
+                    <!-- Дельта-крило з напливом та ракетами Р-73 -->
+                    <path d="M74 51 L134 51 L148 73 L104 71 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="1.4"/>
+                    <rect x="88" y="68" width="32" height="3" rx="1" fill="#f8fafc"/>
+                    <path d="M88 68 L82 69.5 L88 71 Z" fill="#ef4444"/>
+                </svg>
+            `,
+            // Повітряна фортеця / Важкий стратегічний ракетоносець-бос (вліво)
+            boss: `
+                <svg viewBox="0 0 220 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bossArmor" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#4c0519"/>
+                            <stop offset="50%" stop-color="#881337"/>
+                            <stop offset="100%" stop-color="#1e1b4b"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- 4 форсажні сопла важкого ракетоносця -->
+                    <path d="M190 42 L218 47 L190 52 Z" fill="#f43f5e"/>
+                    <path d="M190 54 L218 59 L190 64 Z" fill="#fb923c"/>
+                    <!-- Масивний хвостовий стабілізатор -->
+                    <path d="M186 42 L198 12 L156 42 Z" fill="#881337" stroke="#4c0519" stroke-width="2"/>
+                    <!-- Важкий броньований фюзеляж повітряного дредноута -->
+                    <path d="M192 42 L62 36 L14 54 L62 72 L192 64 Z" fill="url(#bossArmor)" stroke="#f43f5e" stroke-width="1.6"/>
+                    <!-- Бронеплити та заклепки -->
+                    <rect x="76" y="42" width="78" height="22" rx="4" fill="#31102f" stroke="#fb7185" stroke-width="1"/>
+                    <line x1="102" y1="42" x2="102" y2="64" stroke="#f43f5e" stroke-width="1"/>
+                    <line x1="128" y1="42" x2="128" y2="64" stroke="#f43f5e" stroke-width="1"/>
+                    <!-- Броньована рубка екіпажу -->
+                    <path d="M44 45 L72 39 L72 51 Z" fill="#fbbf24" stroke="#4c0519" stroke-width="1"/>
+                    <!-- Стрілоподібне крило з підвісними крилатими ракетами -->
+                    <path d="M84 58 L158 58 L178 90 L114 86 Z" fill="#9f1239" stroke="#4c0519" stroke-width="1.8"/>
+                    <rect x="74" y="72" width="46" height="6" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="1.2"/>
+                    <path d="M74 72 L64 75 L74 78 Z" fill="#f43f5e"/>
+                    <rect x="96" y="82" width="42" height="5" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="1"/>
+                    <path d="M96 82 L88 84.5 L96 87 Z" fill="#f43f5e"/>
+                </svg>
+            `
+        };
+
+        /**
+         * ============================================================================
+         * 2. КОНФІГУРАЦІЯ БАЛАНСУ, РЕАЛЬНИХ ЛІТАКІВ, МОДУЛІВ ТА КОНТРАКТІВ
+         * ============================================================================
+         */
+        const PLANES_DATA = [
+            {
+                id: 1,
+                name: "Sopwith Camel (1916)",
+                era: "Ера I",
+                subtitle: "Біплан ПСВ · 2× кулемети Vickers",
+                baseAtk: 10,
+                baseHp: 100,
+                fireRate: 1.2, // пострілів на секунду
+                unlockGold: 0,
+                unlockScrap: 0,
+                bulletColor: "#fbbf24"
+            },
+            {
+                id: 2,
+                name: "Supermarine Spitfire Mk.V",
+                era: "Ера II",
+                subtitle: "Винищувач ДСВ · Гармати Hispano 20мм",
+                baseAtk: 35,
+                baseHp: 320,
+                fireRate: 1.6,
+                unlockGold: 350,
+                unlockScrap: 15,
+                bulletColor: "#a3e635"
+            },
+            {
+                id: 3,
+                name: "F-86F Sabre (1950)",
+                era: "Ера III",
+                subtitle: "Реактивний винищувач · 6× M3 Browning",
+                baseAtk: 125,
+                baseHp: 1100,
+                fireRate: 2.1,
+                unlockGold: 2200,
+                unlockScrap: 75,
+                bulletColor: "#38bdf8"
+            },
+            {
+                id: 4,
+                name: "F-16C Fighting Falcon",
+                era: "Ера IV",
+                subtitle: "Покоління 4 · Ракети AIM-120 AMRAAM",
+                baseAtk: 480,
+                baseHp: 4200,
+                fireRate: 2.6,
+                unlockGold: 14000,
+                unlockScrap: 320,
+                bulletColor: "#f97316"
+            },
+            {
+                id: 5,
+                name: "F-22A Raptor (Stealth)",
+                era: "Ера V",
+                subtitle: "Покоління 5 · Малопомітний перехоплювач",
+                baseAtk: 2100,
+                baseHp: 18000,
+                fireRate: 3.4,
+                unlockGold: 85000,
+                unlockScrap: 1400,
+                bulletColor: "#22d3ee"
+            }
+        ];
+
+        const UPGRADES_CONFIG = [
+            {
+                id: "weapons",
+                name: "Авіаційні Гармати та Ракети",
+                desc: "Підвищує шкоду (ATK) на +20% за рівень",
+                baseCost: 25,
+                costMult: 1.42,
+                currency: "gold",
+                iconColor: "text-rose-400 bg-rose-500/15 border-rose-500/30"
+            },
+            {
+                id: "armor",
+                name: "Титанова Обшивка",
+                desc: "Підвищує броню (HP) на +25% та авто-ремонт",
+                baseCost: 20,
+                costMult: 1.4,
+                currency: "gold",
+                iconColor: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30"
+            },
+            {
+                id: "tools",
+                name: "Інструменти Інженерів",
+                desc: "Прискорює авто-збірку та силу кліку у цеху",
+                baseCost: 10,
+                costMult: 1.5,
+                currency: "scrap",
+                iconColor: "text-amber-400 bg-amber-500/15 border-amber-500/30"
+            },
+            {
+                id: "logistics",
+                name: "Трофейні Конвої",
+                desc: "Збільшує здобич Золота та Деталей на +25%",
+                baseCost: 45,
+                costMult: 1.55,
+                currency: "gold",
+                iconColor: "text-cyan-400 bg-cyan-500/15 border-cyan-500/30"
+            }
+        ];
+
+        const CONTRACT_TEMPLATES = [
+            { id: "kills", title: "Зачистка неба", desc: "Збити ворожих літаків", baseTarget: 8, goldMult: 65, scrapMult: 4 },
+            { id: "taps", title: "Ударна зміна", desc: "Зробити кліків прискорення в цеху", baseTarget: 15, goldMult: 55, scrapMult: 5 },
+            { id: "crafts", title: "Серійне виробництво", desc: "Завершити циклів збірки у цеху", baseTarget: 2, goldMult: 90, scrapMult: 8 }
+        ];
+
+        /**
+         * ============================================================================
+         * 3. СТАН ГРИ (GAME STATE) ТА ЗБЕРЕЖЕННЯ
+         * ============================================================================
+         */
+        const SAVE_KEY = "skyforge_aviation_idle_v1";
+
+        let state = {
+            gold: 40,
+            scrap: 5,
+            currentPlaneId: 1,
+            unlockedPlanes: [1],
+
+            // Рівні модулів
+            upgrades: {
+                weapons: 0,
+                armor: 0,
+                tools: 0,
+                logistics: 0
+            },
+
+            // Механіка цеху (Forge Master)
+            craftLevel: 1,
+            craftProgress: 0, // у секундах
+            craftDuration: 8.0,
+
+            // Механіка бою (Steelborn)
+            stage: 1,
+            subWave: 1, // 1..4 звичайні, 5 - Бос
+
+            // Контракти
+            contracts: []
+        };
+
+        // Тимчасовий бойовий стан (не зберігається в localStorage)
+        let battle = {
+            playerHp: 100,
+            playerMaxHp: 100,
+            isRepairing: false,
+            repairTimer: 0,
+            fireCooldown: 0,
+
+            enemyName: "Ударний БПЛА",
+            enemyType: "drone",
+            enemyHp: 45,
+            enemyMaxHp: 45,
+            enemyAtk: 6,
+            enemyAttackCooldown: 1.5,
+            isBoss: false
+        };
+
+        /**
+         * ============================================================================
+         * 4. ФОРМУЛИ РОЗРАХУНКІВ ТА ДОПОМІЖНІ ФУНКЦІЇ
+         * ============================================================================
+         */
+        function formatNumber(num) {
+            if (num < 1000) return Math.floor(num).toString();
+            const suffixes = ["", "K", "M", "B", "T", "Qa"];
+            const suffixNum = Math.floor(("" + Math.floor(num)).length / 3);
+            let shortValue = parseFloat((suffixNum !== 0 ? (num / Math.pow(1000, suffixNum)) : num).toPrecision(3));
+            if (shortValue % 1 !== 0) shortValue = shortValue.toFixed(1);
+            return shortValue + suffixes[suffixNum];
+        }
+
+        function getCurrentPlane() {
+            return PLANES_DATA.find(p => p.id === state.currentPlaneId) || PLANES_DATA[0];
+        }
+
+        function getPlayerStats() {
+            const plane = getCurrentPlane();
+            // Бонус від серійної збірки в цеху (+8% за кожен рівень цеху)
+            const forgeBonus = 1 + (state.craftLevel - 1) * 0.08;
+            const atkMult = (1 + state.upgrades.weapons * 0.20) * forgeBonus;
+            const hpMult = (1 + state.upgrades.armor * 0.25) * forgeBonus;
+
+            const atk = Math.round(plane.baseAtk * atkMult);
+            const maxHp = Math.round(plane.baseHp * hpMult);
+            const fireRate = plane.fireRate;
+            const dps = Math.round(atk * fireRate);
+
+            return { atk, maxHp, fireRate, dps };
+        }
+
+        function getForgeStats() {
+            const tapPower = 1.0 + state.upgrades.tools * 0.45;
+            const autoSpeed = 1.0 + state.upgrades.tools * 0.25;
+            return { tapPower, autoSpeed };
+        }
+
+        function getLootMultiplier() {
+            return 1 + state.upgrades.logistics * 0.25;
+        }
+
+        function getUpgradeCost(upgConfig) {
+            const lvl = state.upgrades[upgConfig.id] || 0;
+            return Math.floor(upgConfig.baseCost * Math.pow(upgConfig.costMult, lvl));
+        }
+
+        /**
+         * ============================================================================
+         * 5. ІНІЦІАЛІЗАЦІЯ КОНТРАКТІВ ТА ХВИЛЬ ВОРОГІВ
+         * ============================================================================
+         */
+        function generateContracts() {
+            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2);
+            state.contracts = CONTRACT_TEMPLATES.map((tpl, idx) => ({
+                uid: Date.now() + idx,
+                type: tpl.id,
+                title: tpl.title,
+                desc: tpl.desc,
+                current: 0,
+                target: tpl.baseTarget + Math.floor(scale * 1.5),
+                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.45, scale - 1)),
+                rewardScrap: Math.max(2, Math.floor(tpl.scrapMult * Math.pow(1.3, scale - 1)))
+            }));
+        }
+
+        function advanceContract(type, amount = 1) {
+            let anyReady = false;
+            state.contracts.forEach(c => {
+                if (c.type === type && c.current < c.target) {
+                    c.current = Math.min(c.target, c.current + amount);
+                }
+                if (c.current >= c.target) anyReady = true;
+            });
+
+            const badge = document.getElementById("ui-contract-badge");
+            if (anyReady) {
+                badge.classList.remove("hidden");
+            } else {
+                badge.classList.add("hidden");
+            }
+        }
+
+        function spawnWaveEnemy() {
+            const waveIndex = (state.stage - 1) * 5 + state.subWave;
+            const isBoss = state.subWave === 5;
+            battle.isBoss = isBoss;
+
+            // Експоненційне масштабування ворогів
+            const hpScale = Math.pow(1.34, waveIndex - 1);
+            const atkScale = Math.pow(1.26, waveIndex - 1);
+
+            if (isBoss) {
+                battle.enemyName = `Фортеця Ту-160M-${state.stage}`;
+                battle.enemyType = "boss";
+                battle.enemyMaxHp = Math.round(180 * hpScale);
+                battle.enemyAtk = Math.round(14 * atkScale);
+            } else if (state.subWave >= 3) {
+                battle.enemyName = `МіГ-29СМТ #${waveIndex}`;
+                battle.enemyType = "interceptor";
+                battle.enemyMaxHp = Math.round(65 * hpScale);
+                battle.enemyAtk = Math.round(8 * atkScale);
+            } else {
+                battle.enemyName = `БПЛА «Оріон-${waveIndex}»`;
+                battle.enemyType = "drone";
+                battle.enemyMaxHp = Math.round(42 * hpScale);
+                battle.enemyAtk = Math.round(5 * atkScale);
+            }
+
+            battle.enemyHp = battle.enemyMaxHp;
+            battle.enemyAttackCooldown = 1.4;
+
+            // Оновлюємо SVG ворога
+            const enemyContainer = document.getElementById("enemy-svg-container");
+            enemyContainer.innerHTML = ENEMY_SVGS[battle.enemyType];
+
+            const bossBadge = document.getElementById("ui-boss-badge");
+            if (isBoss) {
+                bossBadge.classList.remove("hidden");
+                bossBadge.classList.add("flex");
+            } else {
+                bossBadge.classList.add("hidden");
+                bossBadge.classList.remove("flex");
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 6. ВІЗУАЛЬНІ ЕФЕКТИ НА CANVAS ТА СПАЛАХИ ШКОДИ
+         * ============================================================================
+         */
+        const canvas = document.getElementById("battle-canvas");
+        const ctx = canvas.getContext("2d");
+        let clouds = [];
+        let projectiles = [];
+        let explosions = [];
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        function initClouds() {
+            clouds = [];
+            for (let i = 0; i < 9; i++) {
+                clouds.push({
+                    x: Math.random() * 800,
+                    y: 25 + Math.random() * 180,
+                    w: 50 + Math.random() * 70,
+                    h: 14 + Math.random() * 14,
+                    speed: 25 + Math.random() * 45,
+                    alpha: 0.04 + Math.random() * 0.08
+                });
+            }
+        }
+
+        function spawnProjectile(fromPlayer, color) {
+            const w = canvas.width;
+            const h = canvas.height;
+            if (fromPlayer) {
+                projectiles.push({
+                    x: w * 0.24,
+                    y: h * 0.52 + (Math.random() * 10 - 5),
+                    vx: w * 1.35,
+                    color: color || "#fbbf24",
+                    isPlayer: true,
+                    len: state.currentPlaneId >= 3 ? 22 : 12
+                });
+            } else {
+                projectiles.push({
+                    x: w * 0.74,
+                    y: h * 0.52 + (Math.random() * 10 - 5),
+                    vx: -w * 1.1,
+                    color: "#f43f5e",
+                    isPlayer: false,
+                    len: 14
+                });
+            }
+        }
+
+        function spawnExplosion(xRatio, yRatio, color, count = 14) {
+            const x = canvas.width * xRatio;
+            const y = canvas.height * yRatio;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 30 + Math.random() * 120;
+                explosions.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 0.45 + Math.random() * 0.25,
+                    maxLife: 0.7,
+                    size: 2 + Math.random() * 4,
+                    color
+                });
+            }
+        }
+
+        function showFloatingDamage(targetId, amount, isCrit = false, isPlayerDamage = false) {
+            const targetEl = document.getElementById(targetId);
+            if (!targetEl) return;
+
+            const popup = document.createElement("div");
+            popup.className = "damage-popup";
+            popup.textContent = (isPlayerDamage ? "-" : "") + formatNumber(amount) + (isCrit ? "!" : "");
+
+            if (isPlayerDamage) {
+                popup.style.color = "#fb7185";
+                popup.style.fontSize = "13px";
+            } else if (isCrit) {
+                popup.style.color = "#fbbf24";
+                popup.style.fontSize = "18px";
+            } else {
+                popup.style.color = "#ffffff";
+                popup.style.fontSize = "14px";
+            }
+
+            const offsetX = 20 + Math.random() * 45;
+            const offsetY = 10 + Math.random() * 20;
+            popup.style.left = `${offsetX}px`;
+            popup.style.top = `${offsetY}px`;
+
+            targetEl.appendChild(popup);
+            setTimeout(() => popup.remove(), 850);
+        }
+
+        function triggerHitFlash(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.classList.remove("hit-flash");
+            void el.offsetWidth; // перезапуск анімації
+            el.classList.add("hit-flash");
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            const colors = {
+                info: "bg-slate-900/95 border-cyan-500/50 text-cyan-200",
+                success: "bg-emerald-950/95 border-emerald-500/60 text-emerald-200",
+                gold: "bg-amber-950/95 border-amber-500/60 text-amber-200"
+            };
+            toast.className = `px-4 py-2.5 rounded-xl border shadow-xl text-xs font-bold backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove("translate-y-2", "opacity-0");
+            });
+
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "-translate-y-2");
+                setTimeout(() => toast.remove(), 300);
+            }, 2400);
+        }
+
+        /**
+         * ============================================================================
+         * 7. ОСНОВНА ЛОГІКА БОЮ ТА ЦЕХУ (GAME LOOP)
+         * ============================================================================
+         */
+        function completeCraftCycle() {
+            state.craftLevel += 1;
+            state.craftProgress = 0;
+            // Трохи збільшуємо тривалість кожні 5 рівнів
+            state.craftDuration = 8.0 + Math.floor((state.craftLevel - 1) / 5) * 1.5;
+
+            const scrapBonus = Math.max(2, Math.round((2 + state.currentPlaneId * 2) * getLootMultiplier()));
+            state.scrap += scrapBonus;
+
+            // Оновлюємо максимальне HP гравця з урахуванням нового бонусу цеху
+            const stats = getPlayerStats();
+            battle.playerMaxHp = stats.maxHp;
+            battle.playerHp = Math.min(battle.playerMaxHp, battle.playerHp + Math.round(stats.maxHp * 0.25));
+
+            advanceContract("crafts", 1);
+            showToast(`Збірку завершено! Рівень цеху ${state.craftLevel} (+${scrapBonus} деталей)`, "gold");
+            renderAllDynamicLists();
+            saveGame();
+        }
+
+        function handleEnemyDefeated() {
+            const waveIndex = (state.stage - 1) * 5 + state.subWave;
+            const lootMult = getLootMultiplier();
+            const bossMult = battle.isBoss ? 3.5 : 1.0;
+
+            const goldDrop = Math.max(5, Math.round((12 * Math.pow(1.28, waveIndex - 1)) * lootMult * bossMult));
+            const scrapDrop = Math.max(1, Math.round((1.5 * Math.pow(1.18, waveIndex - 1)) * lootMult * (battle.isBoss ? 3 : 1)));
+
+            state.gold += goldDrop;
+            state.scrap += scrapDrop;
+
+            spawnExplosion(0.76, 0.52, battle.isBoss ? "#f43f5e" : "#fb923c", battle.isBoss ? 28 : 16);
+            advanceContract("kills", 1);
+
+            // Перехід до наступної хвилі
+            if (state.subWave < 5) {
+                state.subWave += 1;
+            } else {
+                state.subWave = 1;
+                state.stage += 1;
+                showToast(`Етап ${state.stage - 1} пройдено! Новий сектор неба.`, "success");
+            }
+
+            // Невелике відновлення міцності після перемоги
+            battle.playerHp = Math.min(battle.playerMaxHp, battle.playerHp + Math.round(battle.playerMaxHp * 0.15));
+
+            spawnWaveEnemy();
+            renderAllDynamicLists();
+        }
+
+        function updateSimulation(dt) {
+            const stats = getPlayerStats();
+            battle.playerMaxHp = stats.maxHp;
+
+            // 1. Оновлення цеху збірки (Forge Master auto-craft)
+            const forgeStats = getForgeStats();
+            state.craftProgress += dt * forgeStats.autoSpeed;
+            if (state.craftProgress >= state.craftDuration) {
+                completeCraftCycle();
+            }
+
+            // 2. Оновлення повітряного бою (Steelborn auto-battle)
+            if (battle.isRepairing) {
+                battle.repairTimer -= dt;
+                if (battle.repairTimer <= 0) {
+                    battle.isRepairing = false;
+                    battle.playerHp = battle.playerMaxHp;
+                    document.getElementById("player-repair-overlay").classList.add("hidden");
+                    spawnWaveEnemy();
+                }
+            } else {
+                // Постріли гравця
+                battle.fireCooldown -= dt;
+                if (battle.fireCooldown <= 0) {
+                    battle.fireCooldown = 1 / stats.fireRate;
+                    const plane = getCurrentPlane();
+                    spawnProjectile(true, plane.bulletColor);
+
+                    // Шанс критичного удару (15%)
+                    const isCrit = Math.random() < 0.15;
+                    const dmg = isCrit ? Math.round(stats.atk * 1.75) : stats.atk;
+
+                    battle.enemyHp = Math.max(0, battle.enemyHp - dmg);
+                    triggerHitFlash("enemy-svg-container");
+                    showFloatingDamage("enemy-entity", dmg, isCrit, false);
+
+                    if (battle.enemyHp <= 0) {
+                        handleEnemyDefeated();
+                    }
+                }
+
+                // Атаки ворога у відповідь
+                battle.enemyAttackCooldown -= dt;
+                if (battle.enemyAttackCooldown <= 0 && battle.enemyHp > 0) {
+                    battle.enemyAttackCooldown = 1.6;
+                    spawnProjectile(false, "#f43f5e");
+
+                    battle.playerHp = Math.max(0, battle.playerHp - battle.enemyAtk);
+                    triggerHitFlash("player-svg-container");
+                    showFloatingDamage("player-entity", battle.enemyAtk, false, true);
+
+                    if (battle.playerHp <= 0) {
+                        battle.isRepairing = true;
+                        battle.repairTimer = 2.5;
+                        spawnExplosion(0.24, 0.52, "#38bdf8", 20);
+                        document.getElementById("player-repair-overlay").classList.remove("hidden");
+                    }
+                }
+            }
+        }
+
+        function renderCanvas(dt) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Малюємо рухомі хмари (ефект польоту вперед)
+            clouds.forEach(c => {
+                c.x -= c.speed * dt;
+                if (c.x + c.w < 0) {
+                    c.x = canvas.width + 20;
+                    c.y = 20 + Math.random() * (canvas.height - 50);
+                }
+                ctx.fillStyle = `rgba(186, 230, 253, ${c.alpha})`;
+                ctx.beginPath();
+                ctx.roundRect(c.x, c.y, c.w, c.h, c.h / 2);
+                ctx.fill();
+            });
+
+            // Малюємо снаряди та ракети
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.x += p.vx * dt;
+
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = state.currentPlaneId >= 4 && p.isPlayer ? 3.5 : 2.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - (p.isPlayer ? p.len : -p.len), p.y);
+                ctx.stroke();
+
+                // Світіння снаряда
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                if ((p.isPlayer && p.x > canvas.width * 0.74) || (!p.isPlayer && p.x < canvas.width * 0.24)) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            // Малюємо частинки вибухів
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const e = explosions[i];
+                e.x += e.vx * dt;
+                e.y += e.vy * dt;
+                e.life -= dt;
+
+                if (e.life <= 0) {
+                    explosions.splice(i, 1);
+                    continue;
+                }
+
+                ctx.globalAlpha = Math.max(0, e.life / e.maxLife);
+                ctx.fillStyle = e.color;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 8. ОНОВЛЕННЯ ІНТЕРФЕЙСУ (UI RENDERING)
+         * ============================================================================
+         */
+        function updateHudUI() {
+            const plane = getCurrentPlane();
+            const stats = getPlayerStats();
+            const forgeStats = getForgeStats();
+
+            // Ресурси та заголовок
+            document.getElementById("ui-gold").textContent = formatNumber(state.gold);
+            document.getElementById("ui-scrap").textContent = formatNumber(state.scrap);
+            document.getElementById("ui-header-era").textContent = plane.era;
+            document.getElementById("ui-header-plane").textContent = plane.name;
+
+            // Бойовий HUD
+            document.getElementById("ui-wave-text").textContent = `Хвиля ${state.stage}-${state.subWave}`;
+            document.getElementById("ui-dps").textContent = formatNumber(stats.dps);
+
+            const playerHpPct = Math.max(0, Math.min(100, (battle.playerHp / battle.playerMaxHp) * 100));
+            document.getElementById("ui-player-hp-bar").style.width = `${playerHpPct}%`;
+            document.getElementById("ui-player-hp-text").textContent = `${formatNumber(battle.playerHp)}/${formatNumber(battle.playerMaxHp)}`;
+
+            if (battle.isRepairing) {
+                document.getElementById("ui-repair-timer").textContent = `${Math.max(0, battle.repairTimer).toFixed(1)}с`;
+            }
+
+            document.getElementById("ui-enemy-name").textContent = battle.enemyName;
+            const enemyHpPct = Math.max(0, Math.min(100, (battle.enemyHp / battle.enemyMaxHp) * 100));
+            document.getElementById("ui-enemy-hp-bar").style.width = `${enemyHpPct}%`;
+            document.getElementById("ui-enemy-hp-text").textContent = formatNumber(battle.enemyHp);
+
+            // Характеристики знизу арени
+            document.getElementById("ui-stat-atk").textContent = formatNumber(stats.atk);
+            document.getElementById("ui-stat-hp").textContent = formatNumber(stats.maxHp);
+            document.getElementById("ui-stat-spd").textContent = `${stats.fireRate.toFixed(1)}/с`;
+
+            // Цех збірки
+            document.getElementById("ui-craft-tier-label").textContent = `Рівень цеху ${state.craftLevel} (+${(state.craftLevel - 1) * 8}% статів)`;
+            document.getElementById("ui-craft-timer").textContent = `${state.craftProgress.toFixed(1)} / ${state.craftDuration.toFixed(1)} с`;
+            const craftPct = Math.min(100, (state.craftProgress / state.craftDuration) * 100);
+            document.getElementById("ui-craft-bar").style.width = `${craftPct}%`;
+            document.getElementById("ui-tap-power").textContent = forgeStats.tapPower.toFixed(1);
+        }
+
+        function renderPlayerPlane() {
+            const container = document.getElementById("player-svg-container");
+            container.innerHTML = AIRCRAFT_SVGS[state.currentPlaneId] || AIRCRAFT_SVGS[1];
+        }
+
+        function renderEvolutionList() {
+            const container = document.getElementById("evolution-list");
+            container.innerHTML = "";
+
+            PLANES_DATA.forEach(plane => {
+                const isUnlocked = state.unlockedPlanes.includes(plane.id);
+                const isEquipped = state.currentPlaneId === plane.id;
+                const canAfford = state.gold >= plane.unlockGold && state.scrap >= plane.unlockScrap;
+
+                const card = document.createElement("div");
+                card.className = `p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                    isEquipped
+                        ? "bg-cyan-950/40 border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                        : isUnlocked
+                            ? "bg-slate-900/90 border-slate-700/80"
+                            : "bg-slate-950/70 border-slate-800/80"
+                }`;
+
+                let actionBtnHtml = "";
+                if (isEquipped) {
+                    actionBtnHtml = `<span class="px-3 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-extrabold whitespace-nowrap">У небі</span>`;
+                } else if (isUnlocked) {
+                    actionBtnHtml = `<button onclick="equipPlane(${plane.id})" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-bold transition-colors whitespace-nowrap">Вибрати</button>`;
+                } else {
+                    actionBtnHtml = `
+                        <button onclick="unlockPlane(${plane.id})" ${canAfford ? "" : "disabled"} class="px-3 py-2 rounded-xl text-xs font-extrabold transition-all flex flex-col items-end whitespace-nowrap ${
+                            canAfford
+                                ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-navy-950 shadow-lg cursor-pointer"
+                                : "bg-slate-800/70 text-slate-500 border border-slate-700/60 cursor-not-allowed"
+                        }">
+                            <span>Зібрати</span>
+                            <span class="text-[10px] font-bold opacity-90">${formatNumber(plane.unlockGold)} зол. · ${formatNumber(plane.unlockScrap)} дет.</span>
+                        </button>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-16 h-12 rounded-xl bg-slate-950/90 border border-slate-800 p-1.5 shrink-0 flex items-center justify-center ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
+                            ${AIRCRAFT_SVGS[plane.id]}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${plane.era}</span>
+                                <h4 class="text-xs sm:text-sm font-extrabold text-white truncate">${plane.name}</h4>
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate mt-0.5">${plane.subtitle}</p>
+                            <div class="flex items-center gap-2.5 mt-1 text-[10px] font-bold">
+                                <span class="text-rose-400">ATK: ${formatNumber(plane.baseAtk)}</span>
+                                <span class="text-emerald-400">HP: ${formatNumber(plane.baseHp)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        ${actionBtnHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderUpgradesList() {
+            const container = document.getElementById("upgrades-list");
+            container.innerHTML = "";
+
+            UPGRADES_CONFIG.forEach(upg => {
+                const lvl = state.upgrades[upg.id] || 0;
+                const cost = getUpgradeCost(upg);
+                const isGold = upg.currency === "gold";
+                const canAfford = isGold ? state.gold >= cost : state.scrap >= cost;
+
+                const card = document.createElement("div");
+                card.className = "bg-slate-900/95 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3";
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 font-black text-sm ${upg.iconColor}">
+                            +${lvl}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs sm:text-sm font-extrabold text-white truncate">${upg.name}</h4>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">${upg.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyUpgrade('${upg.id}')" ${canAfford ? "" : "disabled"} class="shrink-0 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all flex flex-col items-center min-w-[92px] ${
+                        canAfford
+                            ? isGold
+                                ? "bg-amber-500 hover:bg-amber-400 text-navy-950 shadow-md cursor-pointer"
+                                : "bg-cyan-500 hover:bg-cyan-400 text-navy-950 shadow-md cursor-pointer"
+                            : "bg-slate-800/80 text-slate-500 border border-slate-700/60 cursor-not-allowed"
+                    }">
+                        <span>Покращити</span>
+                        <span class="text-[10px] font-bold mt-0.5">${formatNumber(cost)} ${isGold ? "золота" : "деталей"}</span>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderContractsList() {
+            const container = document.getElementById("contracts-list");
+            container.innerHTML = "";
+
+            state.contracts.forEach((contract, index) => {
+                const isDone = contract.current >= contract.target;
+                const pct = Math.min(100, (contract.current / contract.target) * 100);
+
+                const card = document.createElement("div");
+                card.className = `rounded-2xl p-3.5 border transition-all ${
+                    isDone ? "bg-amber-950/25 border-amber-500/50" : "bg-slate-900/95 border-slate-800"
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-extrabold text-white">${contract.title}</h4>
+                            <p class="text-[11px] text-slate-400">${contract.desc}: <span class="text-slate-200 font-bold">${contract.current}/${contract.target}</span></p>
+                        </div>
+                        <div class="text-right text-[11px] font-bold">
+                            <span class="text-amber-400 block">+${formatNumber(contract.rewardGold)} золота</span>
+                            <span class="text-cyan-400 block">+${formatNumber(contract.rewardScrap)} деталей</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                            <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-200" style="width: ${pct}%"></div>
+                        </div>
+                        <button onclick="claimContract(${index})" ${isDone ? "" : "disabled"} class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
+                            isDone
+                                ? "bg-emerald-500 hover:bg-emerald-400 text-navy-950 shadow-md animate-pulse cursor-pointer"
+                                : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        }">
+                            ${isDone ? "Забрати нагороду" : "В процесі"}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAllDynamicLists() {
+            renderEvolutionList();
+            renderUpgradesList();
+            renderContractsList();
+        }
+
+        /**
+         * ============================================================================
+         * 9. ДІЇ ГРАВЦЯ (КЛІКИ, ПОКУПКИ, НАГОРОДИ)
+         * ============================================================================
+         */
+        window.equipPlane = function(planeId) {
+            if (!state.unlockedPlanes.includes(planeId)) return;
+            state.currentPlaneId = planeId;
+            const stats = getPlayerStats();
+            battle.playerMaxHp = stats.maxHp;
+            battle.playerHp = stats.maxHp;
+
+            renderPlayerPlane();
+            renderEvolutionList();
+            saveGame();
+        };
+
+        window.unlockPlane = function(planeId) {
+            const plane = PLANES_DATA.find(p => p.id === planeId);
+            if (!plane || state.unlockedPlanes.includes(planeId)) return;
+
+            if (state.gold >= plane.unlockGold && state.scrap >= plane.unlockScrap) {
+                state.gold -= plane.unlockGold;
+                state.scrap -= plane.unlockScrap;
+                state.unlockedPlanes.push(planeId);
+                state.currentPlaneId = planeId;
+
+                const stats = getPlayerStats();
+                battle.playerMaxHp = stats.maxHp;
+                battle.playerHp = stats.maxHp;
+
+                spawnExplosion(0.25, 0.5, "#38bdf8", 25);
+                showToast(`Новий літак зібрано: ${plane.name}!`, "success");
+                renderPlayerPlane();
+                renderAllDynamicLists();
+                saveGame();
+            }
+        };
+
+        window.buyUpgrade = function(upgId) {
+            const config = UPGRADES_CONFIG.find(u => u.id === upgId);
+            if (!config) return;
+
+            const cost = getUpgradeCost(config);
+            if (config.currency === "gold" && state.gold >= cost) {
+                state.gold -= cost;
+                state.upgrades[upgId] += 1;
+            } else if (config.currency === "scrap" && state.scrap >= cost) {
+                state.scrap -= cost;
+                state.upgrades[upgId] += 1;
+            } else {
+                return;
+            }
+
+            if (upgId === "armor") {
+                const stats = getPlayerStats();
+                battle.playerMaxHp = stats.maxHp;
+                battle.playerHp = stats.maxHp;
+            }
+
+            renderAllDynamicLists();
+            saveGame();
+        };
+
+        window.claimContract = function(index) {
+            const contract = state.contracts[index];
+            if (!contract || contract.current < contract.target) return;
+
+            state.gold += contract.rewardGold;
+            state.scrap += contract.rewardScrap;
+
+            showToast(`Контракт виконано! +${formatNumber(contract.rewardGold)} золота та +${formatNumber(contract.rewardScrap)} деталей`, "gold");
+
+            // Генеруємо новий контракт на заміну виконаному
+            const tpl = CONTRACT_TEMPLATES[index % CONTRACT_TEMPLATES.length];
+            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2);
+            state.contracts[index] = {
+                uid: Date.now() + index,
+                type: tpl.id,
+                title: tpl.title,
+                desc: tpl.desc,
+                current: 0,
+                target: tpl.baseTarget + Math.floor(scale * 1.8),
+                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.48, scale)),
+                rewardScrap: Math.max(3, Math.floor(tpl.scrapMult * Math.pow(1.32, scale)))
+            };
+
+            advanceContract("none", 0);
+            renderAllDynamicLists();
+            saveGame();
+        };
+
+        // Клік по кнопці прискорення збірки у цеху (Forge Master Tap)
+        document.getElementById("btn-forge-tap").addEventListener("click", (e) => {
+            const forgeStats = getForgeStats();
+            state.craftProgress += forgeStats.tapPower;
+            advanceContract("taps", 1);
+
+            // Візуальні іскри збірки в місці кліку
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = (e.clientX || rect.left + rect.width / 2) - rect.left;
+            const clickY = (e.clientY || rect.top + rect.height / 2) - rect.top;
+
+            for (let i = 0; i < 7; i++) {
+                const spark = document.createElement("span");
+                spark.className = "spark-particle";
+                spark.style.left = `${clickX}px`;
+                spark.style.top = `${clickY}px`;
+                spark.style.backgroundColor = i % 2 === 0 ? "#fef08a" : "#ffffff";
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 25 + Math.random() * 45;
+                spark.style.setProperty("--tx", `${Math.cos(angle) * dist}px`);
+                spark.style.setProperty("--ty", `${Math.sin(angle) * dist}px`);
+                e.currentTarget.appendChild(spark);
+                setTimeout(() => spark.remove(), 500);
+            }
+
+            if (state.craftProgress >= state.craftDuration) {
+                completeCraftCycle();
+            } else {
+                renderContractsList();
+            }
+        });
+
+        /**
+         * ============================================================================
+         * 10. НАВІГАЦІЯ ВКЛАДОК ТА ЗБЕРЕЖЕННЯ / СКИДАННЯ ПРОГРЕСУ
+         * ============================================================================
+         */
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const targetTab = btn.getAttribute("data-tab");
+
+                document.querySelectorAll(".tab-btn").forEach(b => {
+                    b.classList.remove("bg-cyan-500/20", "text-cyan-300", "border-cyan-500/40", "shadow-sm");
+                    b.classList.add("bg-slate-900/60", "text-slate-400", "border-slate-800");
+                });
+
+                btn.classList.remove("bg-slate-900/60", "text-slate-400", "border-slate-800");
+                btn.classList.add("bg-cyan-500/20", "text-cyan-300", "border-cyan-500/40", "shadow-sm");
+
+                document.querySelectorAll(".tab-content").forEach(content => {
+                    content.classList.add("hidden");
+                });
+                document.getElementById(`tab-${targetTab}`).classList.remove("hidden");
+            });
+        });
+
+        // Модалка скидання
+        const resetModal = document.getElementById("reset-modal");
+        document.getElementById("btn-reset-modal").addEventListener("click", () => {
+            resetModal.classList.remove("hidden");
+        });
+        document.getElementById("btn-reset-cancel").addEventListener("click", () => {
+            resetModal.classList.add("hidden");
+        });
+        document.getElementById("btn-reset-confirm").addEventListener("click", () => {
+            localStorage.removeItem(SAVE_KEY);
+            location.reload();
+        });
+
+        function saveGame() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+            } catch (err) {
+                console.warn("Не вдалося зберегти прогрес:", err);
+            }
+        }
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state = { ...state, ...parsed };
+                    state.upgrades = { ...state.upgrades, ...(parsed.upgrades || {}) };
+                }
+            } catch (err) {
+                console.warn("Помилка завантаження збереження:", err);
+            }
+
+            if (!state.contracts || state.contracts.length === 0) {
+                generateContracts();
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 11. ЗАПУСК ГОЛОВНОГО ЦИКЛУ ГРИ (WINDOW ONLOAD)
+         * ============================================================================
+         */
+        let lastTimestamp = 0;
+        let autoSaveTimer = 0;
+        let listRefreshTimer = 0;
+
+        function gameLoop(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000);
+            lastTimestamp = timestamp;
+
+            updateSimulation(dt);
+            renderCanvas(dt);
+            updateHudUI();
+
+            // Періодично оновлюємо доступність кнопок покупок у списках
+            listRefreshTimer += dt;
+            if (listRefreshTimer >= 0.6) {
+                listRefreshTimer = 0;
+                renderAllDynamicLists();
+            }
+
+            // Автозбереження кожні 5 секунд
+            autoSaveTimer += dt;
+            if (autoSaveTimer >= 5) {
+                autoSaveTimer = 0;
+                saveGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function () {
+            loadGame();
+            resizeCanvas();
+            initClouds();
+            window.addEventListener("resize", resizeCanvas);
+
+            const stats = getPlayerStats();
+            battle.playerMaxHp = stats.maxHp;
+            battle.playerHp = stats.maxHp;
+
+            renderPlayerPlane();
+            spawnWaveEnemy();
+            advanceContract("none", 0);
+            renderAllDynamicLists();
+
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
