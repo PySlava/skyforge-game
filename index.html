@@ -45,7 +45,6 @@
             overflow-x: hidden;
         }
 
-        /* Кастомний скролбар */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -61,12 +60,10 @@
             background: #475569;
         }
 
-        /* Анімація кліку по кнопці кування/збірки */
         .forge-btn:active {
             transform: scale(0.95);
         }
 
-        /* Ефект спалаху при влучанні */
         @keyframes hitFlash {
             0% { filter: brightness(2.5) drop-shadow(0 0 12px rgba(239, 68, 68, 0.8)); }
             100% { filter: brightness(1); }
@@ -75,7 +72,6 @@
             animation: hitFlash 0.15s ease-out;
         }
 
-        /* Анімація вильоту цифр шкоди */
         @keyframes floatUpFade {
             0% {
                 opacity: 1;
@@ -98,7 +94,6 @@
             z-index: 30;
         }
 
-        /* Анімація іскор збірки */
         @keyframes sparkFly {
             0% {
                 opacity: 1;
@@ -119,7 +114,6 @@
             z-index: 40;
         }
 
-        /* Сітка радару на фоні */
         .radar-grid {
             background-image:
                 linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
@@ -130,12 +124,10 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between bg-navy-950 font-sans">
 
-    <!-- Головний контейнер додатку (адаптивний під мобільні та десктоп) -->
     <div class="w-full max-w-2xl min-h-screen flex flex-col bg-navy-900 border-x border-slate-800/80 shadow-2xl relative">
 
         <!-- 1. ВЕРХНЯ ПАНЕЛЬ РЕСУРСІВ -->
         <header class="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-md border-b border-slate-800 px-3 py-2.5 sm:px-5 flex items-center justify-between gap-2">
-            <!-- Ресурси -->
             <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
                 <!-- Золото -->
                 <div class="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 px-3 py-1.5 rounded-xl shadow-inner">
@@ -172,13 +164,11 @@
             </div>
         </header>
 
-        <!-- 2. ВЕРХНЯ ПОЛОВИНА — АВТО-БІЙ У ПОВІТРІ (STEELBORN MECHANICS) -->
+        <!-- 2. ВЕРХНЯ ПОЛОВИНА — АВТО-БІЙ У ПОВІТРІ -->
         <section class="relative w-full h-64 sm:h-72 bg-gradient-to-b from-sky-950 via-slate-900 to-navy-900 border-b border-slate-800 overflow-hidden flex flex-col justify-between select-none">
 
-            <!-- Фоновий Canvas для хмар, снарядів та вибухів -->
             <canvas id="battle-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
 
-            <!-- Верхній HUD бою: Хвиля та Бос-індикатор -->
             <div class="relative z-20 px-3 pt-2.5 sm:px-5 flex items-center justify-between">
                 <div class="flex items-center gap-2 bg-slate-950/75 backdrop-blur-sm border border-slate-700/80 px-3 py-1 rounded-full">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
@@ -195,12 +185,10 @@
                 </div>
             </div>
 
-            <!-- Центральна арена літаків (SVG сутності) -->
             <div id="battle-arena" class="relative z-20 flex-1 flex items-center justify-between px-4 sm:px-10 my-auto">
 
                 <!-- ЛІТАК ГРАВЦЯ (Зліва) -->
                 <div id="player-entity" class="relative flex flex-col items-center transition-transform duration-150">
-                    <!-- Смужка HP гравця -->
                     <div class="w-24 sm:w-28 mb-1.5">
                         <div class="flex justify-between text-[10px] font-bold mb-0.5 px-0.5">
                             <span class="text-emerald-400">HP</span>
@@ -211,12 +199,9 @@
                         </div>
                     </div>
 
-                    <!-- Контейнер для SVG літака гравця -->
                     <div id="player-svg-container" class="w-36 h-24 sm:w-44 sm:h-28 flex items-center justify-center animate-float drop-shadow-[0_14px_18px_rgba(0,0,0,0.75)]">
-                        <!-- Динамічно рендериться через JS -->
                     </div>
 
-                    <!-- Оверлей ремонту при знищенні -->
                     <div id="player-repair-overlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-xs rounded-2xl border border-amber-500/50 flex flex-col items-center justify-center p-2 text-center">
                         <span class="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">Ремонт!</span>
                         <span id="ui-repair-timer" class="text-sm font-black text-white mt-0.5">2.0с</span>
@@ -225,7 +210,6 @@
 
                 <!-- ВОРОЖИЙ ОБ'ЄКТ (Справа) -->
                 <div id="enemy-entity" class="relative flex flex-col items-center transition-all duration-200">
-                    <!-- Назва та смужка HP ворога -->
                     <div class="w-28 sm:w-32 mb-1.5">
                         <div class="flex justify-between items-center text-[10px] font-bold mb-0.5 px-0.5">
                             <span id="ui-enemy-name" class="text-rose-400 truncate max-w-[75px]">Розвідник</span>
@@ -236,9 +220,7 @@
                         </div>
                     </div>
 
-                    <!-- Контейнер для SVG ворога -->
                     <div id="enemy-svg-container" class="w-32 h-24 sm:w-40 sm:h-28 flex items-center justify-center drop-shadow-[0_14px_18px_rgba(0,0,0,0.75)]">
-                        <!-- Динамічно рендериться через JS -->
                     </div>
                 </div>
             </div>
@@ -260,10 +242,9 @@
             </div>
         </section>
 
-        <!-- 3. НИЖНЯ ПОЛОВИНА — АНГАР ТА СКЛАДАЛЬНИЙ ЦЕХ (FORGE MASTER MECHANICS) -->
+        <!-- 3. НИЖНЯ ПОЛОВИНА — АНГАР ТА СКЛАДАЛЬНИЙ ЦЕХ -->
         <main class="flex-1 flex flex-col bg-navy-900 radar-grid overflow-hidden">
 
-            <!-- Навігаційні вкладки -->
             <nav class="grid grid-cols-3 gap-1.5 p-2.5 bg-slate-950/60 border-b border-slate-800">
                 <button data-tab="workshop" class="tab-btn active-tab flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
@@ -282,13 +263,11 @@
                 </button>
             </nav>
 
-            <!-- КОНТЕНТ ВКЛАДОК -->
             <div class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
 
-                <!-- ВКЛАДКА 1: ЦЕХ ТА ЕВОЛЮЦІЯ (FORGE MASTER CORE) -->
+                <!-- ВКЛАДКА 1: ЦЕХ ТА ЕВОЛЮЦІЯ -->
                 <div id="tab-workshop" class="tab-content space-y-4">
 
-                    <!-- Картка активного верстата збірки / крафту -->
                     <div class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-4 shadow-xl relative overflow-hidden">
                         <div class="flex items-start justify-between gap-3 mb-3">
                             <div>
@@ -301,7 +280,6 @@
                             </div>
                         </div>
 
-                        <!-- Прогрес-бар кування / збірки -->
                         <div class="mb-3">
                             <div class="flex justify-between text-xs font-bold mb-1">
                                 <span class="text-cyan-400" id="ui-craft-status">Інженери працюють...</span>
@@ -312,27 +290,25 @@
                             </div>
                         </div>
 
-                        <!-- Інтерактивна кнопка прискорення збірки (як у Forge Master) -->
                         <button id="btn-forge-tap" class="forge-btn relative w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-navy-950 font-black text-sm sm:text-base uppercase tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.35)] border border-amber-300/50 flex items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
                             <span>Прискорити збірку (+<span id="ui-tap-power">1.0</span>с)</span>
                         </button>
                     </div>
 
-                    <!-- Дерево Еволюції Літаків (від гіршого до найкращого) -->
+                    <!-- Дерево Еволюції Літаків (Ера I -> X) -->
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between px-1">
-                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Еволюція Авіації (Ера I → V)</h3>
-                            <span class="text-[11px] text-slate-500">Оберіть або зберіть наступний</span>
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Еволюція Авіації (Ера I → X)</h3>
+                            <span class="text-[11px] text-slate-500">10 бойових моделей</span>
                         </div>
 
                         <div id="evolution-list" class="space-y-2.5">
-                            <!-- Список 5 літаків рендериться через JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- ВКЛАДКА 2: МОДУЛІ ТА ВЕРСТАТИ (UPGRADES) -->
+                <!-- ВКЛАДКА 2: МОДУЛІ ТА ВЕРСТАТИ -->
                 <div id="tab-upgrades" class="tab-content hidden space-y-3">
                     <div class="flex items-center justify-between px-1">
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Модернізація Систем та Цеху</h3>
@@ -340,11 +316,10 @@
                     </div>
 
                     <div id="upgrades-list" class="space-y-2.5">
-                        <!-- Картки прокачування рендеряться через JS -->
                     </div>
                 </div>
 
-                <!-- ВКЛАДКА 3: АВІА-КОНТРАКТИ (ORDERS) -->
+                <!-- ВКЛАДКА 3: АВІА-КОНТРАКТИ -->
                 <div id="tab-contracts" class="tab-content hidden space-y-3">
                     <div class="flex items-center justify-between px-1">
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Термінові Контракти Штабу</h3>
@@ -352,17 +327,14 @@
                     </div>
 
                     <div id="contracts-list" class="space-y-2.5">
-                        <!-- Активні контракти рендеряться через JS -->
                     </div>
                 </div>
 
             </div>
         </main>
 
-        <!-- Спливаюче повідомлення (заміна alert) -->
         <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
 
-        <!-- Модальне вікно підтвердження скидання прогресу (заміна confirm) -->
         <div id="reset-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
                 <h3 class="text-lg font-extrabold text-white">Скинути весь прогрес?</h3>
@@ -379,11 +351,11 @@
     <script>
         /**
          * ============================================================================
-         * 1. ДЕТАЛІЗОВАНА ВІЙСЬКОВА АВІАЦІЙНА ГРАФІКА (SVG) ДЛЯ ВСІХ 5 ЕР ТА ВОРОГІВ
+         * 1. ДЕТАЛІЗОВАНА ВІЙСЬКОВА АВІАЦІЙНА ГРАФІКА (SVG) ДЛЯ ВСІХ 10 ЕР ТА ВОРОГІВ
          * ============================================================================
          */
         const AIRCRAFT_SVGS = {
-            // Ера 1: Sopwith Camel (1916) — Реалістичний біплан Першої світової війни
+            // Ера 1: Sopwith Camel (1916)
             1: `
                 <svg viewBox="0 0 220 110" class="w-full h-full">
                     <defs>
@@ -403,57 +375,44 @@
                             <stop offset="100%" stop-color="#1e293b"/>
                         </radialGradient>
                     </defs>
-                    <!-- Тінь під фюзеляжем -->
                     <ellipse cx="115" cy="94" rx="58" ry="4" fill="rgba(0,0,0,0.35)"/>
-                    <!-- Хвостовий стабілізатор та руль напрямку -->
                     <path d="M22 50 L36 33 L49 35 L52 50 Z" fill="#44403c" stroke="#1c1917" stroke-width="1.2"/>
                     <path d="M24 38 L35 38 L35 49 L24 49 Z" fill="#dc2626"/>
                     <rect x="29" y="38" width="3" height="11" fill="#f8fafc"/>
                     <rect x="32" y="38" width="3" height="11" fill="#1d4ed8"/>
                     <path d="M18 52 L48 50 L50 54 L20 55 Z" fill="#78716c" stroke="#1c1917" stroke-width="1"/>
-                    <!-- Фюзеляж (полотно + фанерний ніс) -->
                     <path d="M26 50 L115 44 L165 44 L167 62 L115 64 L28 56 Z" fill="url(#camelBody)" stroke="#1c1917" stroke-width="1.3"/>
-                    <!-- Фанерна обшивка передньої частини та заклепки -->
                     <path d="M112 44 L156 44 L156 62 L112 63 Z" fill="url(#camelWood)" stroke="#451a03" stroke-width="1"/>
                     <line x1="112" y1="44" x2="112" y2="63" stroke="#1c1917" stroke-width="1"/>
                     <line x1="78" y1="47" x2="78" y2="60" stroke="#292524" stroke-width="0.8" stroke-dasharray="2 2"/>
-                    <!-- Розпізнавальна кокарда RAF на борту -->
                     <circle cx="84" cy="54" r="7.5" fill="#facc15"/>
                     <circle cx="84" cy="54" r="6" fill="#1d4ed8"/>
                     <circle cx="84" cy="54" r="3.8" fill="#f8fafc"/>
                     <circle cx="84" cy="54" r="1.8" fill="#dc2626"/>
-                    <!-- Відкрита кабіна пілота та кулемети Vickers -->
                     <path d="M98 44 Q108 38 118 44 Z" fill="#1c1917"/>
                     <circle cx="107" cy="40" r="4" fill="#78350f" stroke="#1c1917" stroke-width="1"/>
                     <rect x="104" y="38" width="6" height="2.2" rx="1" fill="#38bdf8"/>
-                    <!-- Спарені кулемети Vickers перед кабіною -->
                     <rect x="118" y="40.5" width="22" height="3.2" rx="1" fill="#1e293b" stroke="#0f172a" stroke-width="0.8"/>
                     <line x1="140" y1="42" x2="152" y2="42" stroke="#475569" stroke-width="1.5"/>
-                    <!-- Нижнє крило -->
                     <path d="M102 60 L152 60 L146 66 L98 65 Z" fill="#57534e" stroke="#1c1917" stroke-width="1.2"/>
-                    <!-- Міжкрильні стійки та розчалки (дроти) -->
                     <line x1="108" y1="30" x2="106" y2="61" stroke="#451a03" stroke-width="2.2"/>
                     <line x1="142" y1="30" x2="140" y2="61" stroke="#451a03" stroke-width="2.2"/>
                     <line x1="118" y1="30" x2="122" y2="44" stroke="#451a03" stroke-width="1.8"/>
                     <line x1="108" y1="31" x2="140" y2="60" stroke="#cbd5e1" stroke-width="0.6" opacity="0.7"/>
                     <line x1="142" y1="31" x2="106" y2="60" stroke="#cbd5e1" stroke-width="0.6" opacity="0.7"/>
-                    <!-- Верхнє крило -->
                     <path d="M96 26 L156 26 L152 31 L93 31 Z" fill="#44403c" stroke="#1c1917" stroke-width="1.3"/>
-                    <!-- Металевий капот ротативного двигуна Clerget -->
                     <path d="M156 43 L169 44 Q173 53 169 62 L156 63 Z" fill="url(#cowlMetal)" stroke="#0f172a" stroke-width="1.3"/>
-                    <!-- Обертання дерев'яного дволопатевого гвинта -->
                     <rect x="171" y="50" width="5" height="6" rx="1" fill="#334155"/>
                     <ellipse cx="174" cy="53" rx="2.2" ry="26" fill="rgba(217, 119, 6, 0.35)" stroke="rgba(254, 243, 199, 0.45)" stroke-width="0.8">
                         <animate attributeName="ry" values="26;5;26" dur="0.09s" repeatCount="indefinite"/>
                     </ellipse>
-                    <!-- Стійки шасі та спицьовані колеса -->
                     <line x1="126" y1="63" x2="138" y2="83" stroke="#451a03" stroke-width="2.2"/>
                     <line x1="150" y1="62" x2="138" y2="83" stroke="#451a03" stroke-width="2.2"/>
                     <circle cx="138" cy="84" r="7.5" fill="#1c1917" stroke="#57534e" stroke-width="2"/>
                     <circle cx="138" cy="84" r="3.5" fill="#a8a29e"/>
                 </svg>
             `,
-            // Ера 2: Supermarine Spitfire Mk.V (1941) — Легендарний винищувач RAF
+            // Ера 2: Supermarine Spitfire Mk.V (1941)
             2: `
                 <svg viewBox="0 0 220 110" class="w-full h-full">
                     <defs>
@@ -472,34 +431,26 @@
                             <stop offset="100%" stop-color="#0f172a"/>
                         </linearGradient>
                     </defs>
-                    <!-- Округлий кіль та хвостове колесо -->
                     <path d="M16 52 Q22 28 38 30 Q46 32 48 50 Z" fill="#4d7c0f" stroke="#1a2e05" stroke-width="1.3"/>
                     <rect x="26" y="36" width="3.5" height="12" fill="#dc2626"/>
                     <rect x="29.5" y="36" width="3.5" height="12" fill="#f8fafc"/>
                     <rect x="33" y="36" width="3.5" height="12" fill="#1d4ed8"/>
                     <circle cx="24" cy="61" r="2.5" fill="#1e293b"/>
-                    <!-- Витончений фюзеляж Spitfire -->
                     <path d="M22 50 Q80 42 174 44 L176 58 Q115 67 24 56 Z" fill="url(#spitCamo)" stroke="#1a2e05" stroke-width="1.4"/>
-                    <!-- Нижня світло-сіра частина фюзеляжу -->
                     <path d="M24 54 Q105 63 175 56 L174 59 Q105 67 24 56 Z" fill="url(#spitBelly)"/>
-                    <!-- Плями камуфляжу Dark Earth -->
                     <path d="M52 47 Q68 44 74 54 L48 54 Z" fill="#713f12" opacity="0.85"/>
                     <path d="M126 44 Q146 43 152 55 L122 55 Z" fill="#713f12" opacity="0.85"/>
-                    <!-- Лінії розшивки та заклепки -->
                     <line x1="65" y1="46" x2="65" y2="57" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
                     <line x1="124" y1="44" x2="124" y2="59" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
                     <line x1="154" y1="44" x2="154" y2="58" stroke="#1a2e05" stroke-width="0.8" opacity="0.7"/>
-                    <!-- Розпізнавальна кокарда RAF -->
                     <circle cx="78" cy="52" r="8" fill="#facc15"/>
                     <circle cx="78" cy="52" r="6.3" fill="#1d4ed8"/>
                     <circle cx="78" cy="52" r="4" fill="#f8fafc"/>
                     <circle cx="78" cy="52" r="1.8" fill="#dc2626"/>
-                    <!-- Краплеподібний ліхтар кабіни з переплетенням -->
                     <path d="M86 45 Q102 32 122 44 Z" fill="url(#canopyGlass)" stroke="#1e293b" stroke-width="1.3"/>
                     <line x1="97" y1="36" x2="97" y2="45" stroke="#1e293b" stroke-width="1.3"/>
                     <line x1="110" y1="36" x2="110" y2="44" stroke="#1e293b" stroke-width="1.3"/>
                     <path d="M92 38 Q103 34 114 39" fill="none" stroke="#e0f2fe" stroke-width="1.1" opacity="0.8"/>
-                    <!-- Вихлопні патрубки двигуна Rolls-Royce Merlin -->
                     <g fill="#1e293b" stroke="#0f172a" stroke-width="0.6">
                         <rect x="136" y="47" width="4" height="2.2" rx="0.5"/>
                         <rect x="142" y="47" width="4" height="2.2" rx="0.5"/>
@@ -507,19 +458,16 @@
                         <rect x="154" y="47" width="4" height="2.2" rx="0.5"/>
                         <rect x="160" y="47" width="4" height="2.2" rx="0.5"/>
                     </g>
-                    <!-- Знамените еліптичне крило та 20-мм гармата Hispano -->
                     <path d="M94 55 Q122 53 148 56 Q138 69 102 68 Q90 64 94 55 Z" fill="#4d7c0f" stroke="#1a2e05" stroke-width="1.4"/>
                     <rect x="145" y="58" width="14" height="2.5" rx="1" fill="#334155"/>
-                    <!-- Червоний обтічник (кок) гвинта -->
                     <path d="M174 44 L191 51 L174 58 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.2"/>
                     <line x1="181" y1="46" x2="181" y2="56" stroke="#f8fafc" stroke-width="1.2"/>
-                    <!-- Розмиття трилопатевого гвинта -->
                     <ellipse cx="185" cy="51" rx="2.5" ry="29" fill="rgba(226, 232, 240, 0.35)" stroke="rgba(255, 255, 255, 0.5)" stroke-width="0.8">
                         <animate attributeName="ry" values="29;6;29" dur="0.07s" repeatCount="indefinite"/>
                     </ellipse>
                 </svg>
             `,
-            // Ера 3: F-86F Sabre (1950) — Полірований алюмінієвий реактивний винищувач
+            // Ера 3: F-86F Sabre (1950)
             3: `
                 <svg viewBox="0 0 220 110" class="w-full h-full">
                     <defs>
@@ -535,48 +483,36 @@
                             <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
                         </linearGradient>
                     </defs>
-                    <!-- Реактивний струмінь двигуна J47 -->
                     <path d="M26 48 L2 52 L26 56 Z" fill="url(#sabreJet)">
                         <animate attributeName="d" values="M26 48 L2 52 L26 56 Z;M26 47 L10 52 L26 57 Z;M26 48 L2 52 L26 56 Z" dur="0.12s" repeatCount="indefinite"/>
                     </path>
-                    <!-- Високий стрілоподібний кіль із жовтою тактичною смугою -->
                     <path d="M32 45 L14 18 L34 18 L54 45 Z" fill="url(#sabreAlum)" stroke="#334155" stroke-width="1.3"/>
                     <path d="M21 28 L41 28 L46 35 L26 35 Z" fill="#eab308" stroke="#1e293b" stroke-width="0.9"/>
-                    <!-- Стрілоподібний стабілізатор -->
                     <path d="M24 51 L10 55 L36 55 Z" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
-                    <!-- Сигароподібний фюзеляж із носовим повітрозабірником -->
                     <path d="M26 45 L184 44 Q190 52 184 61 L26 58 Z" fill="url(#sabreAlum)" stroke="#334155" stroke-width="1.4"/>
-                    <!-- Жовта смуга швидкої ідентифікації навколо корпусу -->
                     <rect x="86" y="45" width="12" height="14" fill="#eab308" stroke="#1e293b" stroke-width="0.9"/>
-                    <!-- Носовий повітрозабірник та діелектрична панель радару -->
                     <path d="M174 44 L186 45 Q191 52 186 60 L174 61 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1"/>
                     <ellipse cx="187" cy="52.5" rx="2.5" ry="7" fill="#0f172a"/>
                     <path d="M176 41 L185 43 L185 45 L176 45 Z" fill="#1e293b"/>
-                    <!-- Стійки 6 кулеметів M3 Browning (порти на носі) -->
                     <circle cx="164" cy="49" r="1.2" fill="#0f172a"/>
                     <circle cx="168" cy="51" r="1.2" fill="#0f172a"/>
                     <circle cx="164" cy="54" r="1.2" fill="#0f172a"/>
-                    <!-- Розшивка панелей алюмінію -->
                     <line x1="65" y1="45" x2="65" y2="58" stroke="#475569" stroke-width="0.8"/>
                     <line x1="128" y1="44" x2="128" y2="60" stroke="#475569" stroke-width="0.8"/>
                     <line x1="156" y1="44" x2="156" y2="60" stroke="#475569" stroke-width="0.8"/>
-                    <!-- Розпізнавальний знак USAF -->
                     <rect x="52" y="50" width="18" height="4" fill="#1d4ed8"/>
                     <rect x="52" y="51.3" width="18" height="1.4" fill="#dc2626"/>
                     <circle cx="61" cy="52" r="4.5" fill="#1d4ed8" stroke="#f8fafc" stroke-width="0.8"/>
                     <polygon points="61,48 62.2,51 65,51 62.8,52.8 63.6,55.5 61,53.8 58.4,55.5 59.2,52.8 57,51 59.8,51" fill="#f8fafc"/>
-                    <!-- Краплеподібний безрамний ліхтар кабіни -->
                     <path d="M102 44 Q124 30 148 44 Z" fill="url(#canopyGlass)" stroke="#334155" stroke-width="1.3"/>
                     <line x1="114" y1="36" x2="114" y2="44" stroke="#475569" stroke-width="1.5"/>
                     <path d="M118 35 Q130 33 141 40" fill="none" stroke="#f8fafc" stroke-width="1.2" opacity="0.85"/>
-                    <!-- Стрілоподібне крило з аеродинамічним гребенем -->
                     <path d="M98 54 L136 54 L106 75 L78 73 Z" fill="#cbd5e1" stroke="#334155" stroke-width="1.4"/>
                     <line x1="112" y1="54" x2="96" y2="73" stroke="#64748b" stroke-width="1.2"/>
-                    <!-- Підвісний паливний бак -->
                     <ellipse cx="105" cy="70" rx="16" ry="3.5" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
                 </svg>
             `,
-            // Ера 4: F-16C Fighting Falcon (1985) — Багатоцільовий тактичний винищувач 4-го покоління
+            // Ера 4: F-16C Fighting Falcon (1985)
             4: `
                 <svg viewBox="0 0 220 110" class="w-full h-full">
                     <defs>
@@ -597,41 +533,31 @@
                             <stop offset="100%" stop-color="#1e293b"/>
                         </linearGradient>
                     </defs>
-                    <!-- Потужний форсажний факел двигуна F110-GE-129 з ударними ромбами -->
                     <path d="M28 46 L0 51 L28 56 Z" fill="url(#f16Afterburner)">
                         <animate attributeName="d" values="M28 46 L0 51 L28 56 Z;M28 47 L7 51 L28 55 Z;M28 46 L0 51 L28 56 Z" dur="0.09s" repeatCount="indefinite"/>
                     </path>
                     <polygon points="22,51 17,49 12,51 17,53" fill="#e0f2fe" opacity="0.9"/>
-                    <!-- Сопло двигуна -->
                     <path d="M28 45 L38 44 L38 58 L28 57 Z" fill="#1e293b" stroke="#0f172a" stroke-width="1.2"/>
-                    <!-- Високий кіль F-16 із контейнером гальмівного парашута -->
                     <path d="M38 44 L22 14 L42 14 L64 44 Z" fill="#475569" stroke="#1e293b" stroke-width="1.3"/>
                     <rect x="25" y="17" width="16" height="3" fill="#38bdf8" opacity="0.8"/>
-                    <!-- Нижній підфюзеляжний гребінь (ventral fin) -->
                     <path d="M44 58 L36 67 L58 58 Z" fill="#475569" stroke="#1e293b" stroke-width="1"/>
-                    <!-- Інтегральний фюзеляж та гострий радіопрозорий обтічник носа -->
                     <path d="M38 44 L145 43 L204 52 L145 59 L38 58 Z" fill="url(#f16Grey)" stroke="#1e293b" stroke-width="1.4"/>
                     <path d="M172 47 L204 52 L172 56 Z" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                    <!-- Підфюзеляжний повітрозабірник -->
                     <path d="M116 58 L152 57 L148 64 L112 63 Z" fill="#334155" stroke="#0f172a" stroke-width="1.2"/>
                     <ellipse cx="150" cy="60.5" rx="2" ry="3.2" fill="#090d16"/>
-                    <!-- Безрамний золотистий ліхтар кабіни та катапультне крісло ACES II -->
                     <path d="M108 44 Q134 29 162 44 Z" fill="url(#goldCanopy)" stroke="#1e293b" stroke-width="1.3"/>
                     <path d="M122 43 L125 35 L129 35 L128 43 Z" fill="#0f172a"/>
                     <path d="M132 34 Q145 33 155 40" fill="none" stroke="#fef9c3" stroke-width="1.2" opacity="0.85"/>
-                    <!-- Дельта-крило з напливом (LEX) -->
                     <path d="M74 51 L138 51 L96 74 L68 72 Z" fill="#64748b" stroke="#1e293b" stroke-width="1.4"/>
-                    <!-- Ракета AIM-9 Sidewinder на кінцівці крила -->
                     <rect x="64" y="71" width="38" height="2.6" rx="1" fill="#f8fafc" stroke="#475569" stroke-width="0.6"/>
                     <path d="M102 71 L107 72.3 L102 73.6 Z" fill="#475569"/>
                     <polygon points="70,71 67,68 73,71" fill="#94a3b8"/>
                     <polygon points="70,73.6 67,76.6 73,73.6" fill="#94a3b8"/>
-                    <!-- Підкрилова ракета AIM-120 AMRAAM -->
                     <rect x="82" y="63" width="34" height="3" rx="1" fill="#e2e8f0" stroke="#334155" stroke-width="0.7"/>
                     <path d="M116 63 L121 64.5 L116 66 Z" fill="#1e293b"/>
                 </svg>
             `,
-            // Ера 5: F-22A Raptor (5-те покоління) — Стес-винищувач завоювання переваги в повітрі
+            // Ера 5: F-22A Raptor (2005)
             5: `
                 <svg viewBox="0 0 220 110" class="w-full h-full">
                     <defs>
@@ -652,38 +578,238 @@
                             <stop offset="100%" stop-color="#b45309"/>
                         </linearGradient>
                     </defs>
-                    <!-- Плазмовий вихлоп двох двигунів F119 з керованим вектором тяги -->
                     <path d="M30 46 L2 51 L30 56 Z" fill="url(#raptorPlasma)">
                         <animate attributeName="opacity" values="0.95;0.55;0.95" dur="0.08s" repeatCount="indefinite"/>
                     </path>
-                    <!-- Пласкі стелс-сопла зменшеної ІЧ-помітності -->
                     <path d="M30 45 L42 44 L42 58 L30 57 Z" fill="#090d16" stroke="#38bdf8" stroke-width="0.9"/>
-                    <!-- Скошені назовні подвійні кілі (V-tail стелс-геометрія) -->
                     <path d="M44 45 L26 17 L48 17 L74 45 Z" fill="#1e293b" stroke="#64748b" stroke-width="1.2"/>
                     <path d="M33 25 L54 25 L57 29 L36 29 Z" fill="#334155"/>
-                    <!-- Гранований стелс-планер із гострими кромками (chine) -->
                     <path d="M40 45 L138 41 L208 51 L138 60 L40 57 Z" fill="url(#raptorStealth)" stroke="#64748b" stroke-width="1.3"/>
-                    <!-- Характерна бічна кромка корпусу (Chine line) для розсіювання радару -->
                     <line x1="42" y1="51" x2="208" y2="51" stroke="#94a3b8" stroke-width="1.2" opacity="0.85"/>
-                    <!-- Пилкоподібні люки внутрішніх відсіків озброєння (stealth sawtooth seams) -->
                     <path d="M96 52 L102 55 L108 52 L114 55 L120 52 L126 55 L132 52" fill="none" stroke="#64748b" stroke-width="0.9"/>
-                    <!-- Ромбоподібний повітрозабірник Caret -->
                     <path d="M126 51 L156 51 L148 61 L120 60 Z" fill="#0f172a" stroke="#475569" stroke-width="1.1"/>
-                    <!-- Ліхтар кабіни з покриттям з оксиду індію та олова (золотистий відблиск) -->
                     <path d="M114 43 Q142 29 170 43 Z" fill="url(#raptorVisor)" stroke="#94a3b8" stroke-width="1.2"/>
                     <path d="M128 36 Q145 33 160 40" fill="none" stroke="#fef9c3" stroke-width="1.3" opacity="0.9"/>
-                    <!-- Трапецієподібне стелс-крило з RAM-обшивкою по краях -->
                     <path d="M68 51 L142 51 L104 75 L64 70 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="1.3"/>
                     <path d="M104 75 L142 51 L134 51 L98 74 Z" fill="#475569" opacity="0.7"/>
-                    <!-- Неонові навігаційні вогні низької помітності -->
                     <circle cx="104" cy="73" r="1.8" fill="#22d3ee"/>
                     <circle cx="176" cy="48" r="1.4" fill="#38bdf8"/>
+                </svg>
+            `,
+            // Ера 6: B-2 Spirit (1997) — Стратегічний стелс-бомбардувальник «літаюче крило»
+            6: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="b2Stealth" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#0f172a"/>
+                            <stop offset="50%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#020617"/>
+                        </linearGradient>
+                        <linearGradient id="b2Exhaust" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Тепловий слід із заглиблених верхніх сопел -->
+                    <path d="M64 47 L22 49 L64 51 Z" fill="url(#b2Exhaust)">
+                        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="0.16s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Верхнє крило в перспективі (літаюче крило) -->
+                    <path d="M44 48 L128 24 L152 30 L96 48 Z" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+                    <!-- Основний корпус та пилкоподібна задня кромка (Sawtooth trailing edge) -->
+                    <path d="M28 54 L46 46 L58 51 L72 44 L86 50 L102 43 L198 54 L112 72 L94 64 L78 72 L62 63 L46 70 Z" fill="url(#b2Stealth)" stroke="#64748b" stroke-width="1.3"/>
+                    <!-- Гостра передня кромка з радіопоглинаючим покриттям -->
+                    <path d="M102 43 L198 54 L112 72 L106 69 L186 54 L99 46 Z" fill="#334155" opacity="0.85"/>
+                    <!-- Заглиблені повітрозабірники S-подібного каналу -->
+                    <path d="M114 48 L138 49 L134 53 L110 52 Z" fill="#020617" stroke="#475569" stroke-width="0.9"/>
+                    <!-- Скління кабіни пілотів B-2 (4 характерні вікна) -->
+                    <path d="M150 49 L174 52 L168 55 L146 53 Z" fill="#38bdf8" opacity="0.75" stroke="#94a3b8" stroke-width="0.8"/>
+                    <line x1="158" y1="50" x2="156" y2="54" stroke="#0f172a" stroke-width="1.1"/>
+                    <line x1="166" y1="51" x2="164" y2="54.5" stroke="#0f172a" stroke-width="1.1"/>
+                    <!-- Нижнє крило та внутрішній бомбовий відсік -->
+                    <path d="M62 58 L136 58 L98 84 L54 78 Z" fill="#090d16" stroke="#475569" stroke-width="1.3"/>
+                    <!-- Керована авіабомба GBU-57 MOP під відсіком -->
+                    <rect x="94" y="65" width="32" height="4.5" rx="2" fill="#475569" stroke="#94a3b8" stroke-width="0.8"/>
+                    <path d="M126 65 L133 67.25 L126 69.5 Z" fill="#f59e0b"/>
+                    <circle cx="98" cy="82" r="1.6" fill="#38bdf8"/>
+                </svg>
+            `,
+            // Ера 7: SR-71 Blackbird (1966) — Надзвуковий стратосферний розвідник із конусами Маха
+            7: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="sr71Body" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#1e1b4b"/>
+                            <stop offset="45%" stop-color="#0f172a"/>
+                            <stop offset="100%" stop-color="#020617"/>
+                        </linearGradient>
+                        <linearGradient id="sr71Afterburner" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#e0e7ff"/>
+                            <stop offset="35%" stop-color="#818cf8"/>
+                            <stop offset="75%" stop-color="#4f46e5" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#312e81" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Синьо-фіолетовий форсаж двигунів Pratt & Whitney J58 -->
+                    <path d="M36 52 L2 58 L36 64 Z" fill="url(#sr71Afterburner)">
+                        <animate attributeName="d" values="M36 52 L2 58 L36 64 Z;M36 53 L8 58 L36 63 Z;M36 52 L2 58 L36 64 Z" dur="0.07s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Ударні кільця/ромби Маха (Mach diamonds) -->
+                    <polygon points="32,58 27,55.5 22,58 27,60.5" fill="#e0e7ff"/>
+                    <polygon points="20,58 16,56 12,58 16,60" fill="#a5b4fc" opacity="0.85"/>
+                    <polygon points="10,58 7,56.5 4,58 7,59.5" fill="#818cf8" opacity="0.65"/>
+                    <!-- Нахилений всередину хвостовий кіль на мотогондолі -->
+                    <path d="M52 51 L42 25 L58 25 L76 51 Z" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+                    <line x1="48" y1="32" x2="62" y2="32" stroke="#ef4444" stroke-width="1.2"/>
+                    <!-- Довгий голкоподібний титановий фюзеляж із бічними напливами (Chines) -->
+                    <path d="M34 48 L152 46 L214 53 L152 58 L34 56 Z" fill="url(#sr71Body)" stroke="#475569" stroke-width="1.3"/>
+                    <!-- Гостра титанова бічна кромка вздовж усього корпусу -->
+                    <line x1="36" y1="52" x2="214" y2="53" stroke="#94a3b8" stroke-width="1.2"/>
+                    <!-- Кабіна пілота та оператора розвідки -->
+                    <path d="M138 46 L154 41 L168 46 Z" fill="#38bdf8" opacity="0.7" stroke="#64748b" stroke-width="1"/>
+                    <path d="M156 46 L167 42 L177 47 Z" fill="#38bdf8" opacity="0.7" stroke="#64748b" stroke-width="1"/>
+                    <!-- Масивна винесена мотогондола двигуна J58 з ударним конусом -->
+                    <path d="M36 51 L118 51 L126 58 L118 65 L36 64 Z" fill="#090d16" stroke="#64748b" stroke-width="1.3"/>
+                    <!-- Конус повітрозабірника J58 -->
+                    <polygon points="118,52 135,58 118,64" fill="#334155" stroke="#94a3b8" stroke-width="0.9"/>
+                    <!-- Дельтаподібне крило -->
+                    <path d="M46 58 L110 58 L76 76 L42 74 Z" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+                    <circle cx="76" cy="74" r="1.5" fill="#818cf8"/>
+                </svg>
+            `,
+            // Ера 8: X-02S Strike Wyvern (2028) — Винищувач покоління 5++ зі зворотною стрілоподібністю крила
+            8: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="wyvernHull" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#1e3a8a"/>
+                            <stop offset="50%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                        <linearGradient id="wyvernPlasma" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#f0abfc"/>
+                            <stop offset="45%" stop-color="#c026d3"/>
+                            <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Плазмовий імпульсний вихлоп -->
+                    <path d="M28 46 L0 51 L28 56 Z" fill="url(#wyvernPlasma)">
+                        <animate attributeName="d" values="M28 46 L0 51 L28 56 Z;M28 47 L6 51 L28 55 Z;M28 46 L0 51 L28 56 Z" dur="0.07s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Сопла з тривимірним вектором тяги -->
+                    <path d="M28 45 L42 44 L42 58 L28 57 Z" fill="#090d16" stroke="#d946ef" stroke-width="1"/>
+                    <!-- V-подібне хвостове оперення -->
+                    <path d="M44 45 L24 19 L46 21 L72 45 Z" fill="#1e293b" stroke="#60a5fa" stroke-width="1.2"/>
+                    <!-- Фюзеляж покоління 5++ -->
+                    <path d="M38 45 L146 41 L210 51 L146 60 L38 57 Z" fill="url(#wyvernHull)" stroke="#60a5fa" stroke-width="1.3"/>
+                    <!-- Переднє горизонтальне оперення (ПГО / Canards) -->
+                    <path d="M138 47 L166 48 L152 38 L134 42 Z" fill="#2563eb" stroke="#93c5fd" stroke-width="1"/>
+                    <!-- Кокпіт без скління (COFFIN сенсорна кабіна) -->
+                    <path d="M114 43 Q142 30 168 43 Z" fill="#090d16" stroke="#38bdf8" stroke-width="1.3"/>
+                    <path d="M122 40 L158 41" stroke="#22d3ee" stroke-width="1.4" stroke-dasharray="4 2"/>
+                    <!-- Крило зворотної стрілоподібності (Forward-swept wing) -->
+                    <path d="M64 52 L114 52 L138 77 L106 77 Z" fill="#1d4ed8" stroke="#93c5fd" stroke-width="1.3"/>
+                    <!-- Рейкотронний підфюзеляжний контейнер EML -->
+                    <rect x="86" y="59" width="56" height="4" rx="1.5" fill="#0f172a" stroke="#e879f9" stroke-width="1"/>
+                    <circle cx="144" cy="61" r="2" fill="#f0abfc"/>
+                    <circle cx="136" cy="76" r="1.8" fill="#38bdf8"/>
+                </svg>
+            `,
+            // Ера 9: TR-3B Astra / Aurora (2035) — Гіперзвуковий трикутний МГД-апарат
+            9: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="tr3bHull" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#090d16"/>
+                            <stop offset="50%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                        <radialGradient id="mhdCore" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="35%" stop-color="#2dd4bf"/>
+                            <stop offset="70%" stop-color="#0284c7" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+                        </radialGradient>
+                        <linearGradient id="ionTrail" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.85"/>
+                            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Бірюзовий іонний слід -->
+                    <path d="M40 44 L2 52 L40 60 Z" fill="url(#ionTrail)">
+                        <animate attributeName="opacity" values="0.9;0.45;0.9" dur="0.1s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Трикутний корпус аерокосмічної платформи TR-3B -->
+                    <path d="M36 28 L206 52 L36 76 L54 52 Z" fill="url(#tr3bHull)" stroke="#2dd4bf" stroke-width="1.5"/>
+                    <!-- Внутрішні грані та панелі термозахисту -->
+                    <path d="M54 52 L206 52 L44 35 Z" fill="#1e293b" opacity="0.65"/>
+                    <path d="M54 52 L206 52 L44 69 Z" fill="#0f172a" opacity="0.85"/>
+                    <!-- Центральний магнітогідродинамічний прискорювач (МГД-ядро) -->
+                    <circle cx="96" cy="52" r="16" fill="url(#mhdCore)">
+                        <animate attributeName="r" values="14;18;14" dur="0.4s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="96" cy="52" r="7" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.5"/>
+                    <!-- Кутові гравітаційно-іонні випромінювачі -->
+                    <circle cx="44" cy="33" r="4" fill="#2dd4bf" stroke="#ffffff" stroke-width="1"/>
+                    <circle cx="44" cy="71" r="4" fill="#2dd4bf" stroke="#ffffff" stroke-width="1"/>
+                    <circle cx="192" cy="52" r="3.5" fill="#38bdf8" stroke="#ffffff" stroke-width="0.9"/>
+                    <!-- Броньована рубка екіпажу -->
+                    <path d="M134 48 L162 52 L134 56 Z" fill="#0f172a" stroke="#5eead4" stroke-width="1.1"/>
+                </svg>
+            `,
+            // Ера 10: X-99 Valkyrie (2050) — Орбітальний аерокосмічний перехоплювач майбутнього
+            10: `
+                <svg viewBox="0 0 220 110" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="valkArmor" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f8fafc"/>
+                            <stop offset="40%" stop-color="#cbd5e1"/>
+                            <stop offset="80%" stop-color="#334155"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                        <linearGradient id="valkGold" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#f59e0b"/>
+                            <stop offset="50%" stop-color="#fef08a"/>
+                            <stop offset="100%" stop-color="#d97706"/>
+                        </linearGradient>
+                        <linearGradient id="valkThruster" x1="1" y1="0" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="30%" stop-color="#38bdf8"/>
+                            <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Силове поле енергетичного щита навколо носа -->
+                    <path d="M168 24 Q224 52 168 80" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 3" opacity="0.75">
+                        <animate attributeName="opacity" values="0.85;0.35;0.85" dur="0.6s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Гіпершвидкісний плазмово-термоядерний факел -->
+                    <path d="M26 44 L0 51 L26 58 Z" fill="url(#valkThruster)">
+                        <animate attributeName="d" values="M26 44 L0 51 L26 58 Z;M26 46 L5 51 L26 56 Z;M26 44 L0 51 L26 58 Z" dur="0.06s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Подвійні орбітальні стабілізатори -->
+                    <path d="M40 44 L18 14 L44 16 L74 44 Z" fill="#1e293b" stroke="#fbbf24" stroke-width="1.3"/>
+                    <!-- Основний композитно-титановий корпус Valkyrie X-99 -->
+                    <path d="M28 44 L144 38 L212 51 L144 63 L28 58 Z" fill="url(#valkArmor)" stroke="#475569" stroke-width="1.4"/>
+                    <!-- Золоті енергоконтури та сенсорний ліхтар -->
+                    <path d="M112 42 Q144 27 176 42 Z" fill="url(#valkGold)" stroke="#0f172a" stroke-width="1.2"/>
+                    <line x1="48" y1="51" x2="206" y2="51" stroke="#38bdf8" stroke-width="1.5"/>
+                    <!-- Антигравітаційний пілон та спарена рейкотронна гармата -->
+                    <path d="M66 54 L138 54 L106 82 L60 76 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="1.4"/>
+                    <!-- Стволи орбітального рейкотрона -->
+                    <rect x="92" y="65" width="68" height="3" rx="1" fill="#e2e8f0" stroke="#0284c7" stroke-width="0.8"/>
+                    <rect x="92" y="70" width="68" height="3" rx="1" fill="#e2e8f0" stroke="#0284c7" stroke-width="0.8"/>
+                    <circle cx="162" cy="69" r="3.5" fill="#38bdf8">
+                        <animate attributeName="r" values="2.5;4.5;2.5" dur="0.35s" repeatCount="indefinite"/>
+                    </circle>
+                    <!-- Антигравітаційний стабілізатор на кінцівці крила -->
+                    <ellipse cx="104" cy="81" rx="12" ry="3" fill="#38bdf8" opacity="0.85"/>
                 </svg>
             `
         };
 
         const ENEMY_SVGS = {
-            // Ворожий розвідувальний біплан / БПЛА (розвернутий вліво)
+            // Ворожий розвідувальний БПЛА
             drone: `
                 <svg viewBox="0 0 180 100" class="w-full h-full">
                     <defs>
@@ -692,23 +818,18 @@
                             <stop offset="100%" stop-color="#0f172a"/>
                         </linearGradient>
                     </defs>
-                    <!-- Реактивний слід -->
                     <path d="M158 46 L178 49 L158 52 Z" fill="#ef4444" opacity="0.7"/>
-                    <!-- V-подібне хвостове оперення -->
                     <path d="M148 45 L162 24 L136 45 Z" fill="#7f1d1d" stroke="#450a0a" stroke-width="1.2"/>
-                    <!-- Обтічний корпус ударного БПЛА -->
                     <path d="M156 45 L58 42 L18 50 L58 56 L156 53 Z" fill="url(#enemyDark)" stroke="#ef4444" stroke-width="1.2"/>
-                    <!-- Оптико-електронна турель під носом -->
                     <circle cx="44" cy="56" r="5" fill="#1e293b" stroke="#ef4444" stroke-width="1"/>
                     <circle cx="42" cy="56" r="2" fill="#f43f5e">
                         <animate attributeName="opacity" values="1;0.3;1" dur="0.5s" repeatCount="indefinite"/>
                     </circle>
-                    <!-- Пряме крило великого подовження та керована бомба -->
                     <path d="M74 49 L116 49 L126 70 L94 69 Z" fill="#1e293b" stroke="#475569" stroke-width="1.3"/>
                     <rect x="82" y="64" width="24" height="3.5" rx="1.5" fill="#dc2626"/>
                 </svg>
             `,
-            // Ворожий реактивний перехоплювач типу MiG-29/Su-27 (вліво)
+            // Ворожий реактивний перехоплювач
             interceptor: `
                 <svg viewBox="0 0 190 105" class="w-full h-full">
                     <defs>
@@ -718,23 +839,41 @@
                             <stop offset="100%" stop-color="#450a0a"/>
                         </linearGradient>
                     </defs>
-                    <!-- Форсаж -->
                     <path d="M164 46 L188 51 L164 56 Z" fill="#f97316">
                         <animate attributeName="d" values="M164 46 L188 51 L164 56 Z;M164 47 L180 51 L164 55 Z;M164 46 L188 51 L164 56 Z" dur="0.1s" repeatCount="indefinite"/>
                     </path>
-                    <!-- Подвійний кіль -->
                     <path d="M156 44 L168 18 L142 44 Z" fill="#7f1d1d" stroke="#450a0a" stroke-width="1.3"/>
-                    <!-- Стрілоподібний фюзеляж із гострим носом -->
                     <path d="M162 44 L66 42 L14 51 L66 58 L162 56 Z" fill="url(#migRed)" stroke="#450a0a" stroke-width="1.4"/>
-                    <!-- Кабіна пілота -->
                     <path d="M52 43 Q74 31 96 43 Z" fill="#1e293b" stroke="#f87171" stroke-width="1"/>
-                    <!-- Дельта-крило з напливом та ракетами Р-73 -->
                     <path d="M74 51 L134 51 L148 73 L104 71 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="1.4"/>
                     <rect x="88" y="68" width="32" height="3" rx="1" fill="#f8fafc"/>
                     <path d="M88 68 L82 69.5 L88 71 Z" fill="#ef4444"/>
                 </svg>
             `,
-            // Повітряна фортеця / Важкий стратегічний ракетоносець-бос (вліво)
+            // Важкий стратосферний крейсер (для високих хвиль)
+            cruiser: `
+                <svg viewBox="0 0 210 115" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="cruiserHull" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#312e81"/>
+                            <stop offset="50%" stop-color="#1e1b4b"/>
+                            <stop offset="100%" stop-color="#090d16"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M180 42 L208 48 L180 54 Z" fill="#a855f7"/>
+                    <path d="M180 56 L208 62 L180 68 Z" fill="#ec4899"/>
+                    <path d="M174 42 L188 16 L148 42 Z" fill="#4c1d95" stroke="#a855f7" stroke-width="1.4"/>
+                    <path d="M184 42 L64 38 L12 54 L64 70 L184 65 Z" fill="url(#cruiserHull)" stroke="#c084fc" stroke-width="1.5"/>
+                    <rect x="74" y="45" width="76" height="18" rx="3" fill="#1e1b4b" stroke="#e879f9" stroke-width="1"/>
+                    <circle cx="92" cy="54" r="3.5" fill="#f43f5e"/>
+                    <circle cx="112" cy="54" r="3.5" fill="#f43f5e"/>
+                    <circle cx="132" cy="54" r="3.5" fill="#f43f5e"/>
+                    <path d="M78 58 L148 58 L166 86 L104 82 Z" fill="#3b0764" stroke="#a855f7" stroke-width="1.5"/>
+                    <rect x="64" y="73" width="44" height="5" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="1.1"/>
+                    <path d="M64 73 L54 75.5 L64 78 Z" fill="#f43f5e"/>
+                </svg>
+            `,
+            // Повітряна фортеця / Бос
             boss: `
                 <svg viewBox="0 0 220 120" class="w-full h-full">
                     <defs>
@@ -744,32 +883,50 @@
                             <stop offset="100%" stop-color="#1e1b4b"/>
                         </linearGradient>
                     </defs>
-                    <!-- 4 форсажні сопла важкого ракетоносця -->
                     <path d="M190 42 L218 47 L190 52 Z" fill="#f43f5e"/>
                     <path d="M190 54 L218 59 L190 64 Z" fill="#fb923c"/>
-                    <!-- Масивний хвостовий стабілізатор -->
                     <path d="M186 42 L198 12 L156 42 Z" fill="#881337" stroke="#4c0519" stroke-width="2"/>
-                    <!-- Важкий броньований фюзеляж повітряного дредноута -->
                     <path d="M192 42 L62 36 L14 54 L62 72 L192 64 Z" fill="url(#bossArmor)" stroke="#f43f5e" stroke-width="1.6"/>
-                    <!-- Бронеплити та заклепки -->
                     <rect x="76" y="42" width="78" height="22" rx="4" fill="#31102f" stroke="#fb7185" stroke-width="1"/>
                     <line x1="102" y1="42" x2="102" y2="64" stroke="#f43f5e" stroke-width="1"/>
                     <line x1="128" y1="42" x2="128" y2="64" stroke="#f43f5e" stroke-width="1"/>
-                    <!-- Броньована рубка екіпажу -->
                     <path d="M44 45 L72 39 L72 51 Z" fill="#fbbf24" stroke="#4c0519" stroke-width="1"/>
-                    <!-- Стрілоподібне крило з підвісними крилатими ракетами -->
                     <path d="M84 58 L158 58 L178 90 L114 86 Z" fill="#9f1239" stroke="#4c0519" stroke-width="1.8"/>
                     <rect x="74" y="72" width="46" height="6" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="1.2"/>
                     <path d="M74 72 L64 75 L74 78 Z" fill="#f43f5e"/>
                     <rect x="96" y="82" width="42" height="5" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="1"/>
                     <path d="M96 82 L88 84.5 L96 87 Z" fill="#f43f5e"/>
                 </svg>
+            `,
+            // Орбітальний Дредноут (Бос високих етапів)
+            dreadnought: `
+                <svg viewBox="0 0 225 125" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="dreadHull" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#090d16"/>
+                            <stop offset="50%" stop-color="#1e1b4b"/>
+                            <stop offset="100%" stop-color="#450a0a"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M195 38 L222 44 L195 50 Z" fill="#38bdf8"/>
+                    <path d="M195 54 L222 60 L195 66 Z" fill="#f43f5e"/>
+                    <path d="M195 70 L222 76 L195 82 Z" fill="#38bdf8"/>
+                    <path d="M188 38 L204 10 L152 38 Z" fill="#1e1b4b" stroke="#38bdf8" stroke-width="1.6"/>
+                    <path d="M198 38 L66 30 L10 56 L66 82 L198 74 Z" fill="url(#dreadHull)" stroke="#f43f5e" stroke-width="1.8"/>
+                    <polygon points="74,44 156,44 168,56 156,68 74,68 62,56" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <circle cx="114" cy="56" r="8" fill="#f43f5e">
+                        <animate attributeName="r" values="6;9;6" dur="0.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <path d="M84 68 L164 68 L186 102 L114 96 Z" fill="#1e1b4b" stroke="#f43f5e" stroke-width="1.8"/>
+                    <rect x="62" y="84" width="54" height="6" rx="2" fill="#090d16" stroke="#38bdf8" stroke-width="1.2"/>
+                    <path d="M62 84 L48 87 L62 90 Z" fill="#38bdf8"/>
+                </svg>
             `
         };
 
         /**
          * ============================================================================
-         * 2. КОНФІГУРАЦІЯ БАЛАНСУ, РЕАЛЬНИХ ЛІТАКІВ, МОДУЛІВ ТА КОНТРАКТІВ
+         * 2. КОНФІГУРАЦІЯ БАЛАНСУ, 10 РЕАЛЬНИХ ТА ПЕРСПЕКТИВНИХ ЛІТАКІВ
          * ============================================================================
          */
         const PLANES_DATA = [
@@ -780,10 +937,11 @@
                 subtitle: "Біплан ПСВ · 2× кулемети Vickers",
                 baseAtk: 10,
                 baseHp: 100,
-                fireRate: 1.2, // пострілів на секунду
+                fireRate: 1.2,
                 unlockGold: 0,
                 unlockScrap: 0,
-                bulletColor: "#fbbf24"
+                bulletColor: "#fbbf24",
+                projectileType: "bullet"
             },
             {
                 id: 2,
@@ -795,7 +953,8 @@
                 fireRate: 1.6,
                 unlockGold: 350,
                 unlockScrap: 15,
-                bulletColor: "#a3e635"
+                bulletColor: "#a3e635",
+                projectileType: "bullet"
             },
             {
                 id: 3,
@@ -807,7 +966,8 @@
                 fireRate: 2.1,
                 unlockGold: 2200,
                 unlockScrap: 75,
-                bulletColor: "#38bdf8"
+                bulletColor: "#38bdf8",
+                projectileType: "tracer"
             },
             {
                 id: 4,
@@ -819,7 +979,8 @@
                 fireRate: 2.6,
                 unlockGold: 14000,
                 unlockScrap: 320,
-                bulletColor: "#f97316"
+                bulletColor: "#f97316",
+                projectileType: "missile"
             },
             {
                 id: 5,
@@ -828,10 +989,76 @@
                 subtitle: "Покоління 5 · Малопомітний перехоплювач",
                 baseAtk: 2100,
                 baseHp: 18000,
-                fireRate: 3.4,
+                fireRate: 3.3,
                 unlockGold: 85000,
                 unlockScrap: 1400,
-                bulletColor: "#22d3ee"
+                bulletColor: "#22d3ee",
+                projectileType: "missile"
+            },
+            {
+                id: 6,
+                name: "B-2 Spirit (1997)",
+                era: "Ера VI",
+                subtitle: "Стелс-бомбардувальник · Важкі керовані бомби",
+                baseAtk: 9800,
+                baseHp: 82000,
+                fireRate: 3.6,
+                unlockGold: 520000,
+                unlockScrap: 6200,
+                bulletColor: "#f59e0b",
+                projectileType: "bomb"
+            },
+            {
+                id: 7,
+                name: "SR-71 Blackbird (1966)",
+                era: "Ера VII",
+                subtitle: "Надзвуковий розвідник · Імпульсні ракети Мах 3+",
+                baseAtk: 44000,
+                baseHp: 350000,
+                fireRate: 4.2,
+                unlockGold: 3200000,
+                unlockScrap: 28000,
+                bulletColor: "#818cf8",
+                projectileType: "mach"
+            },
+            {
+                id: 8,
+                name: "X-02S Strike Wyvern (2028)",
+                era: "Ера VIII",
+                subtitle: "Покоління 5++ · Плазмово-імпульсні заряди",
+                baseAtk: 210000,
+                baseHp: 1550000,
+                fireRate: 4.8,
+                unlockGold: 21000000,
+                unlockScrap: 130000,
+                bulletColor: "#e879f9",
+                projectileType: "plasma"
+            },
+            {
+                id: 9,
+                name: "TR-3B Astra / Aurora (2035)",
+                era: "Ера IX",
+                subtitle: "Гіперзвуковий МГД-апарат · Іонні промені",
+                baseAtk: 1050000,
+                baseHp: 7200000,
+                fireRate: 5.4,
+                unlockGold: 145000000,
+                unlockScrap: 650000,
+                bulletColor: "#2dd4bf",
+                projectileType: "beam"
+            },
+            {
+                id: 10,
+                name: "X-99 Valkyrie (2050)",
+                era: "Ера X",
+                subtitle: "Орбітальний перехоплювач · Рейкотронна гармата",
+                baseAtk: 5600000,
+                baseHp: 36000000,
+                fireRate: 6.2,
+                unlockGold: 1100000000,
+                unlockScrap: 3500000,
+                bulletColor: "#38bdf8",
+                projectileType: "railgun"
             }
         ];
 
@@ -839,7 +1066,7 @@
             {
                 id: "weapons",
                 name: "Авіаційні Гармати та Ракети",
-                desc: "Підвищує шкоду (ATK) на +20% за рівень",
+                desc: "Підвищує шкоду (ATK) на +22% за рівень",
                 baseCost: 25,
                 costMult: 1.42,
                 currency: "gold",
@@ -847,8 +1074,8 @@
             },
             {
                 id: "armor",
-                name: "Титанова Обшивка",
-                desc: "Підвищує броню (HP) на +25% та авто-ремонт",
+                name: "Титанова та Композитна Броня",
+                desc: "Підвищує броню (HP) на +26% та авто-ремонт",
                 baseCost: 20,
                 costMult: 1.4,
                 currency: "gold",
@@ -856,7 +1083,7 @@
             },
             {
                 id: "tools",
-                name: "Інструменти Інженерів",
+                name: "Інструменти та Дрони Інженерів",
                 desc: "Прискорює авто-збірку та силу кліку у цеху",
                 baseCost: 10,
                 costMult: 1.5,
@@ -865,8 +1092,8 @@
             },
             {
                 id: "logistics",
-                name: "Трофейні Конвої",
-                desc: "Збільшує здобич Золота та Деталей на +25%",
+                name: "Трофейні Конвої та Розвідка",
+                desc: "Збільшує здобич Золота та Деталей на +28%",
                 baseCost: 45,
                 costMult: 1.55,
                 currency: "gold",
@@ -875,9 +1102,10 @@
         ];
 
         const CONTRACT_TEMPLATES = [
-            { id: "kills", title: "Зачистка неба", desc: "Збити ворожих літаків", baseTarget: 8, goldMult: 65, scrapMult: 4 },
-            { id: "taps", title: "Ударна зміна", desc: "Зробити кліків прискорення в цеху", baseTarget: 15, goldMult: 55, scrapMult: 5 },
-            { id: "crafts", title: "Серійне виробництво", desc: "Завершити циклів збірки у цеху", baseTarget: 2, goldMult: 90, scrapMult: 8 }
+            { id: "kills", title: "Зачистка неба", desc: "Збити ворожих апаратів", baseTarget: 8, goldMult: 75, scrapMult: 5 },
+            { id: "taps", title: "Ударна зміна", desc: "Зробити кліків прискорення в цеху", baseTarget: 15, goldMult: 65, scrapMult: 6 },
+            { id: "crafts", title: "Серійне виробництво", desc: "Завершити циклів збірки у цеху", baseTarget: 2, goldMult: 105, scrapMult: 9 },
+            { id: "bosses", title: "Полювання на флагманів", desc: "Знищити повітряних босів", baseTarget: 1, goldMult: 180, scrapMult: 15 }
         ];
 
         /**
@@ -885,7 +1113,7 @@
          * 3. СТАН ГРИ (GAME STATE) ТА ЗБЕРЕЖЕННЯ
          * ============================================================================
          */
-        const SAVE_KEY = "skyforge_aviation_idle_v1";
+        const SAVE_KEY = "skyforge_aviation_idle_v2";
 
         let state = {
             gold: 40,
@@ -893,7 +1121,6 @@
             currentPlaneId: 1,
             unlockedPlanes: [1],
 
-            // Рівні модулів
             upgrades: {
                 weapons: 0,
                 armor: 0,
@@ -901,20 +1128,16 @@
                 logistics: 0
             },
 
-            // Механіка цеху (Forge Master)
             craftLevel: 1,
-            craftProgress: 0, // у секундах
+            craftProgress: 0,
             craftDuration: 8.0,
 
-            // Механіка бою (Steelborn)
             stage: 1,
-            subWave: 1, // 1..4 звичайні, 5 - Бос
+            subWave: 1,
 
-            // Контракти
             contracts: []
         };
 
-        // Тимчасовий бойовий стан (не зберігається в localStorage)
         let battle = {
             playerHp: 100,
             playerMaxHp: 100,
@@ -938,8 +1161,9 @@
          */
         function formatNumber(num) {
             if (num < 1000) return Math.floor(num).toString();
-            const suffixes = ["", "K", "M", "B", "T", "Qa"];
+            const suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx"];
             const suffixNum = Math.floor(("" + Math.floor(num)).length / 3);
+            if (suffixNum >= suffixes.length) return num.toExponential(2);
             let shortValue = parseFloat((suffixNum !== 0 ? (num / Math.pow(1000, suffixNum)) : num).toPrecision(3));
             if (shortValue % 1 !== 0) shortValue = shortValue.toFixed(1);
             return shortValue + suffixes[suffixNum];
@@ -951,10 +1175,9 @@
 
         function getPlayerStats() {
             const plane = getCurrentPlane();
-            // Бонус від серійної збірки в цеху (+8% за кожен рівень цеху)
-            const forgeBonus = 1 + (state.craftLevel - 1) * 0.08;
-            const atkMult = (1 + state.upgrades.weapons * 0.20) * forgeBonus;
-            const hpMult = (1 + state.upgrades.armor * 0.25) * forgeBonus;
+            const forgeBonus = 1 + (state.craftLevel - 1) * 0.09;
+            const atkMult = (1 + state.upgrades.weapons * 0.22) * forgeBonus;
+            const hpMult = (1 + state.upgrades.armor * 0.26) * forgeBonus;
 
             const atk = Math.round(plane.baseAtk * atkMult);
             const maxHp = Math.round(plane.baseHp * hpMult);
@@ -971,7 +1194,7 @@
         }
 
         function getLootMultiplier() {
-            return 1 + state.upgrades.logistics * 0.25;
+            return 1 + state.upgrades.logistics * 0.28;
         }
 
         function getUpgradeCost(upgConfig) {
@@ -981,20 +1204,20 @@
 
         /**
          * ============================================================================
-         * 5. ІНІЦІАЛІЗАЦІЯ КОНТРАКТІВ ТА ХВИЛЬ ВОРОГІВ
+         * 5. ІНІЦІАЛІЗАЦІЯ КОНТРАКТІВ ТА ГЕНЕРАТОР ХВИЛЬ ВОРОГІВ / БОСІВ
          * ============================================================================
          */
         function generateContracts() {
-            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2);
+            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2.5);
             state.contracts = CONTRACT_TEMPLATES.map((tpl, idx) => ({
                 uid: Date.now() + idx,
                 type: tpl.id,
                 title: tpl.title,
                 desc: tpl.desc,
                 current: 0,
-                target: tpl.baseTarget + Math.floor(scale * 1.5),
-                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.45, scale - 1)),
-                rewardScrap: Math.max(2, Math.floor(tpl.scrapMult * Math.pow(1.3, scale - 1)))
+                target: tpl.id === "bosses" ? Math.max(1, Math.floor(1 + state.stage / 6)) : tpl.baseTarget + Math.floor(scale * 1.4),
+                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.48, scale - 1)),
+                rewardScrap: Math.max(2, Math.floor(tpl.scrapMult * Math.pow(1.32, scale - 1)))
             }));
         }
 
@@ -1020,15 +1243,24 @@
             const isBoss = state.subWave === 5;
             battle.isBoss = isBoss;
 
-            // Експоненційне масштабування ворогів
-            const hpScale = Math.pow(1.34, waveIndex - 1);
-            const atkScale = Math.pow(1.26, waveIndex - 1);
+            const hpScale = Math.pow(1.36, waveIndex - 1);
+            const atkScale = Math.pow(1.27, waveIndex - 1);
 
             if (isBoss) {
-                battle.enemyName = `Фортеця Ту-160M-${state.stage}`;
-                battle.enemyType = "boss";
-                battle.enemyMaxHp = Math.round(180 * hpScale);
+                if (state.stage >= 8) {
+                    battle.enemyName = `Орбітальний Дредноут MK-${state.stage}`;
+                    battle.enemyType = "dreadnought";
+                } else {
+                    battle.enemyName = `Фортеця Ту-160M-${state.stage}`;
+                    battle.enemyType = "boss";
+                }
+                battle.enemyMaxHp = Math.round(190 * hpScale);
                 battle.enemyAtk = Math.round(14 * atkScale);
+            } else if (state.stage >= 6 && state.subWave >= 3) {
+                battle.enemyName = `Стратосферний Крейсер #${waveIndex}`;
+                battle.enemyType = "cruiser";
+                battle.enemyMaxHp = Math.round(80 * hpScale);
+                battle.enemyAtk = Math.round(9.5 * atkScale);
             } else if (state.subWave >= 3) {
                 battle.enemyName = `МіГ-29СМТ #${waveIndex}`;
                 battle.enemyType = "interceptor";
@@ -1044,7 +1276,6 @@
             battle.enemyHp = battle.enemyMaxHp;
             battle.enemyAttackCooldown = 1.4;
 
-            // Оновлюємо SVG ворога
             const enemyContainer = document.getElementById("enemy-svg-container");
             enemyContainer.innerHTML = ENEMY_SVGS[battle.enemyType];
 
@@ -1060,7 +1291,7 @@
 
         /**
          * ============================================================================
-         * 6. ВІЗУАЛЬНІ ЕФЕКТИ НА CANVAS ТА СПАЛАХИ ШКОДИ
+         * 6. ВІЗУАЛЬНІ ЕФЕКТИ НА CANVAS (СНАРЯДИ ЕР I-X ТА ВИБУХИ)
          * ============================================================================
          */
         const canvas = document.getElementById("battle-canvas");
@@ -1089,26 +1320,29 @@
             }
         }
 
-        function spawnProjectile(fromPlayer, color) {
+        function spawnProjectile(fromPlayer, plane) {
             const w = canvas.width;
             const h = canvas.height;
             if (fromPlayer) {
+                const pType = plane.projectileType || "bullet";
                 projectiles.push({
-                    x: w * 0.24,
-                    y: h * 0.52 + (Math.random() * 10 - 5),
-                    vx: w * 1.35,
-                    color: color || "#fbbf24",
+                    x: w * 0.25,
+                    y: h * 0.52 + (pType === "bomb" ? 6 : (Math.random() * 10 - 5)),
+                    vx: pType === "railgun" || pType === "beam" ? w * 2.1 : (pType === "bomb" ? w * 1.05 : w * 1.4),
+                    color: plane.bulletColor || "#fbbf24",
                     isPlayer: true,
-                    len: state.currentPlaneId >= 3 ? 22 : 12
+                    type: pType,
+                    len: pType === "railgun" || pType === "beam" ? 42 : (pType === "plasma" ? 26 : 16)
                 });
             } else {
                 projectiles.push({
                     x: w * 0.74,
                     y: h * 0.52 + (Math.random() * 10 - 5),
-                    vx: -w * 1.1,
-                    color: "#f43f5e",
+                    vx: -w * 1.15,
+                    color: battle.enemyType === "dreadnought" || battle.enemyType === "cruiser" ? "#e879f9" : "#f43f5e",
                     isPlayer: false,
-                    len: 14
+                    type: "enemy",
+                    len: 16
                 });
             }
         }
@@ -1164,7 +1398,7 @@
             const el = document.getElementById(elementId);
             if (!el) return;
             el.classList.remove("hit-flash");
-            void el.offsetWidth; // перезапуск анімації
+            void el.offsetWidth;
             el.classList.add("hit-flash");
         }
 
@@ -1198,19 +1432,17 @@
         function completeCraftCycle() {
             state.craftLevel += 1;
             state.craftProgress = 0;
-            // Трохи збільшуємо тривалість кожні 5 рівнів
             state.craftDuration = 8.0 + Math.floor((state.craftLevel - 1) / 5) * 1.5;
 
-            const scrapBonus = Math.max(2, Math.round((2 + state.currentPlaneId * 2) * getLootMultiplier()));
+            const scrapBonus = Math.max(2, Math.round((2 + Math.pow(state.currentPlaneId, 1.8) * 2) * getLootMultiplier()));
             state.scrap += scrapBonus;
 
-            // Оновлюємо максимальне HP гравця з урахуванням нового бонусу цеху
             const stats = getPlayerStats();
             battle.playerMaxHp = stats.maxHp;
             battle.playerHp = Math.min(battle.playerMaxHp, battle.playerHp + Math.round(stats.maxHp * 0.25));
 
             advanceContract("crafts", 1);
-            showToast(`Збірку завершено! Рівень цеху ${state.craftLevel} (+${scrapBonus} деталей)`, "gold");
+            showToast(`Збірку завершено! Рівень цеху ${state.craftLevel} (+${formatNumber(scrapBonus)} деталей)`, "gold");
             renderAllDynamicLists();
             saveGame();
         }
@@ -1218,18 +1450,20 @@
         function handleEnemyDefeated() {
             const waveIndex = (state.stage - 1) * 5 + state.subWave;
             const lootMult = getLootMultiplier();
-            const bossMult = battle.isBoss ? 3.5 : 1.0;
+            const bossMult = battle.isBoss ? 3.8 : 1.0;
 
-            const goldDrop = Math.max(5, Math.round((12 * Math.pow(1.28, waveIndex - 1)) * lootMult * bossMult));
-            const scrapDrop = Math.max(1, Math.round((1.5 * Math.pow(1.18, waveIndex - 1)) * lootMult * (battle.isBoss ? 3 : 1)));
+            const goldDrop = Math.max(5, Math.round((12 * Math.pow(1.30, waveIndex - 1)) * lootMult * bossMult));
+            const scrapDrop = Math.max(1, Math.round((1.5 * Math.pow(1.20, waveIndex - 1)) * lootMult * (battle.isBoss ? 3.2 : 1)));
 
             state.gold += goldDrop;
             state.scrap += scrapDrop;
 
-            spawnExplosion(0.76, 0.52, battle.isBoss ? "#f43f5e" : "#fb923c", battle.isBoss ? 28 : 16);
+            spawnExplosion(0.76, 0.52, battle.isBoss ? "#f43f5e" : "#fb923c", battle.isBoss ? 30 : 16);
             advanceContract("kills", 1);
+            if (battle.isBoss) {
+                advanceContract("bosses", 1);
+            }
 
-            // Перехід до наступної хвилі
             if (state.subWave < 5) {
                 state.subWave += 1;
             } else {
@@ -1238,7 +1472,6 @@
                 showToast(`Етап ${state.stage - 1} пройдено! Новий сектор неба.`, "success");
             }
 
-            // Невелике відновлення міцності після перемоги
             battle.playerHp = Math.min(battle.playerMaxHp, battle.playerHp + Math.round(battle.playerMaxHp * 0.15));
 
             spawnWaveEnemy();
@@ -1249,14 +1482,12 @@
             const stats = getPlayerStats();
             battle.playerMaxHp = stats.maxHp;
 
-            // 1. Оновлення цеху збірки (Forge Master auto-craft)
             const forgeStats = getForgeStats();
             state.craftProgress += dt * forgeStats.autoSpeed;
             if (state.craftProgress >= state.craftDuration) {
                 completeCraftCycle();
             }
 
-            // 2. Оновлення повітряного бою (Steelborn auto-battle)
             if (battle.isRepairing) {
                 battle.repairTimer -= dt;
                 if (battle.repairTimer <= 0) {
@@ -1266,16 +1497,14 @@
                     spawnWaveEnemy();
                 }
             } else {
-                // Постріли гравця
                 battle.fireCooldown -= dt;
                 if (battle.fireCooldown <= 0) {
                     battle.fireCooldown = 1 / stats.fireRate;
                     const plane = getCurrentPlane();
-                    spawnProjectile(true, plane.bulletColor);
+                    spawnProjectile(true, plane);
 
-                    // Шанс критичного удару (15%)
-                    const isCrit = Math.random() < 0.15;
-                    const dmg = isCrit ? Math.round(stats.atk * 1.75) : stats.atk;
+                    const isCrit = Math.random() < 0.16;
+                    const dmg = isCrit ? Math.round(stats.atk * 1.8) : stats.atk;
 
                     battle.enemyHp = Math.max(0, battle.enemyHp - dmg);
                     triggerHitFlash("enemy-svg-container");
@@ -1286,11 +1515,10 @@
                     }
                 }
 
-                // Атаки ворога у відповідь
                 battle.enemyAttackCooldown -= dt;
                 if (battle.enemyAttackCooldown <= 0 && battle.enemyHp > 0) {
                     battle.enemyAttackCooldown = 1.6;
-                    spawnProjectile(false, "#f43f5e");
+                    spawnProjectile(false, null);
 
                     battle.playerHp = Math.max(0, battle.playerHp - battle.enemyAtk);
                     triggerHitFlash("player-svg-container");
@@ -1309,7 +1537,6 @@
         function renderCanvas(dt) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Малюємо рухомі хмари (ефект польоту вперед)
             clouds.forEach(c => {
                 c.x -= c.speed * dt;
                 if (c.x + c.w < 0) {
@@ -1322,31 +1549,61 @@
                 ctx.fill();
             });
 
-            // Малюємо снаряди та ракети
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const p = projectiles[i];
                 p.x += p.vx * dt;
 
-                ctx.strokeStyle = p.color;
-                ctx.lineWidth = state.currentPlaneId >= 4 && p.isPlayer ? 3.5 : 2.5;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x - (p.isPlayer ? p.len : -p.len), p.y);
-                ctx.stroke();
+                ctx.save();
+                if (p.isPlayer && p.type === "bomb") {
+                    ctx.fillStyle = "#475569";
+                    ctx.beginPath();
+                    ctx.ellipse(p.x, p.y, 8, 3.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#f59e0b";
+                    ctx.beginPath();
+                    ctx.arc(p.x + 6, p.y, 2.2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.isPlayer && (p.type === "plasma" || p.type === "beam" || p.type === "railgun")) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color;
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = p.type === "railgun" ? 4.5 : 3.5;
+                    ctx.lineCap = "round";
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - p.len, p.y);
+                    ctx.stroke();
 
-                // Світіння снаряда
-                ctx.fillStyle = "#ffffff";
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
-                ctx.fill();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - p.len * 0.75, p.y);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = p.isPlayer && state.currentPlaneId >= 4 ? 3.2 : 2.4;
+                    ctx.lineCap = "round";
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - (p.isPlayer ? p.len : -p.len), p.y);
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
 
                 if ((p.isPlayer && p.x > canvas.width * 0.74) || (!p.isPlayer && p.x < canvas.width * 0.24)) {
+                    if (p.isPlayer && (p.type === "bomb" || p.type === "plasma" || p.type === "railgun")) {
+                        spawnExplosion(0.74, 0.52, p.color, 6);
+                    }
                     projectiles.splice(i, 1);
                 }
             }
 
-            // Малюємо частинки вибухів
             for (let i = explosions.length - 1; i >= 0; i--) {
                 const e = explosions[i];
                 e.x += e.vx * dt;
@@ -1377,13 +1634,11 @@
             const stats = getPlayerStats();
             const forgeStats = getForgeStats();
 
-            // Ресурси та заголовок
             document.getElementById("ui-gold").textContent = formatNumber(state.gold);
             document.getElementById("ui-scrap").textContent = formatNumber(state.scrap);
             document.getElementById("ui-header-era").textContent = plane.era;
             document.getElementById("ui-header-plane").textContent = plane.name;
 
-            // Бойовий HUD
             document.getElementById("ui-wave-text").textContent = `Хвиля ${state.stage}-${state.subWave}`;
             document.getElementById("ui-dps").textContent = formatNumber(stats.dps);
 
@@ -1400,13 +1655,11 @@
             document.getElementById("ui-enemy-hp-bar").style.width = `${enemyHpPct}%`;
             document.getElementById("ui-enemy-hp-text").textContent = formatNumber(battle.enemyHp);
 
-            // Характеристики знизу арени
             document.getElementById("ui-stat-atk").textContent = formatNumber(stats.atk);
             document.getElementById("ui-stat-hp").textContent = formatNumber(stats.maxHp);
             document.getElementById("ui-stat-spd").textContent = `${stats.fireRate.toFixed(1)}/с`;
 
-            // Цех збірки
-            document.getElementById("ui-craft-tier-label").textContent = `Рівень цеху ${state.craftLevel} (+${(state.craftLevel - 1) * 8}% статів)`;
+            document.getElementById("ui-craft-tier-label").textContent = `Рівень цеху ${state.craftLevel} (+${(state.craftLevel - 1) * 9}% статів)`;
             document.getElementById("ui-craft-timer").textContent = `${state.craftProgress.toFixed(1)} / ${state.craftDuration.toFixed(1)} с`;
             const craftPct = Math.min(100, (state.craftProgress / state.craftDuration) * 100);
             document.getElementById("ui-craft-bar").style.width = `${craftPct}%`;
@@ -1640,18 +1893,17 @@
 
             showToast(`Контракт виконано! +${formatNumber(contract.rewardGold)} золота та +${formatNumber(contract.rewardScrap)} деталей`, "gold");
 
-            // Генеруємо новий контракт на заміну виконаному
             const tpl = CONTRACT_TEMPLATES[index % CONTRACT_TEMPLATES.length];
-            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2);
+            const scale = Math.max(1, state.stage + (state.currentPlaneId - 1) * 2.5);
             state.contracts[index] = {
                 uid: Date.now() + index,
                 type: tpl.id,
                 title: tpl.title,
                 desc: tpl.desc,
                 current: 0,
-                target: tpl.baseTarget + Math.floor(scale * 1.8),
-                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.48, scale)),
-                rewardScrap: Math.max(3, Math.floor(tpl.scrapMult * Math.pow(1.32, scale)))
+                target: tpl.id === "bosses" ? Math.max(1, Math.floor(1 + state.stage / 6)) : tpl.baseTarget + Math.floor(scale * 1.6),
+                rewardGold: Math.floor(tpl.goldMult * Math.pow(1.5, scale)),
+                rewardScrap: Math.max(3, Math.floor(tpl.scrapMult * Math.pow(1.34, scale)))
             };
 
             advanceContract("none", 0);
@@ -1659,13 +1911,11 @@
             saveGame();
         };
 
-        // Клік по кнопці прискорення збірки у цеху (Forge Master Tap)
         document.getElementById("btn-forge-tap").addEventListener("click", (e) => {
             const forgeStats = getForgeStats();
             state.craftProgress += forgeStats.tapPower;
             advanceContract("taps", 1);
 
-            // Візуальні іскри збірки в місці кліку
             const rect = e.currentTarget.getBoundingClientRect();
             const clickX = (e.clientX || rect.left + rect.width / 2) - rect.left;
             const clickY = (e.clientY || rect.top + rect.height / 2) - rect.top;
@@ -1715,7 +1965,6 @@
             });
         });
 
-        // Модалка скидання
         const resetModal = document.getElementById("reset-modal");
         document.getElementById("btn-reset-modal").addEventListener("click", () => {
             resetModal.classList.remove("hidden");
@@ -1755,7 +2004,7 @@
 
         /**
          * ============================================================================
-         * 11. ЗАПУСК ГОЛОВНОГО ЦИКЛУ ГРИ (WINDOW ONLOAD)
+         * 11. ЗАПУСК ГОЛОВНОГО ЦИКЛУ ГРИ
          * ============================================================================
          */
         let lastTimestamp = 0;
@@ -1771,14 +2020,12 @@
             renderCanvas(dt);
             updateHudUI();
 
-            // Періодично оновлюємо доступність кнопок покупок у списках
             listRefreshTimer += dt;
             if (listRefreshTimer >= 0.6) {
                 listRefreshTimer = 0;
                 renderAllDynamicLists();
             }
 
-            // Автозбереження кожні 5 секунд
             autoSaveTimer += dt;
             if (autoSaveTimer >= 5) {
                 autoSaveTimer = 0;
